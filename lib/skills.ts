@@ -1,0 +1,203 @@
+export type SkillCategory = "language" | "engineering" | "ai" | "security";
+
+export interface Skill {
+  slug: string;
+  name: string;
+  category: SkillCategory;
+  /** 0–100 — personal proficiency indicator, not a scientific score */
+  score: number;
+  levelLabel: string;
+  description?: string;
+  /** Slugs of projects in lib/projects.ts that use this skill */
+  projectSlugs: string[];
+}
+
+export const SKILLS: Skill[] = [
+  // Languages
+  {
+    slug: "python",
+    name: "Python",
+    category: "language",
+    score: 88,
+    levelLabel: "Advanced",
+    description: "My main language for scripting and backend work. I use it for API servers, automation pipelines and AI integrations.",
+    projectSlugs: ["ai-video-editor", "agent-orchestrator", "ctf-penetration-labs"],
+  },
+  {
+    slug: "typescript",
+    name: "TypeScript",
+    category: "language",
+    score: 82,
+    levelLabel: "Advanced",
+    description: "My preferred language for full-stack web work. All my Next.js projects run strict TypeScript.",
+    projectSlugs: ["ai-video-editor", "obsidian-system"],
+  },
+  {
+    slug: "javascript",
+    name: "JavaScript",
+    category: "language",
+    score: 80,
+    levelLabel: "Advanced",
+    description: "A solid base under my TypeScript work. Comfortable with runtime quirks and async patterns.",
+    projectSlugs: ["templates-web", "ctf-penetration-labs", "obsidian-system"],
+  },
+  {
+    slug: "html-css",
+    name: "HTML / CSS",
+    category: "language",
+    score: 78,
+    levelLabel: "Proficient",
+    description: "Semantic markup and modern CSS including Flexbox, Grid, and CSS custom properties.",
+    projectSlugs: ["templtes-web"],
+  },
+
+  // Engineering
+  {
+    slug: "backend-engineering",
+    name: "Backend Engineering",
+    category: "engineering",
+    score: 84,
+    levelLabel: "Advanced",
+    description: "REST API design, async task queues, database modelling and service architecture.",
+    projectSlugs: ["ai-video-editor", "agent-orchestrator", "obsidian-system"],
+  },
+  {
+    slug: "software-architecture",
+    name: "Software Architecture",
+    category: "engineering",
+    score: 76,
+    levelLabel: "Proficient",
+    description: "I design systems with clear boundaries, and think carefully about data flow and failure modes.",
+    projectSlugs: ["ai-video-editor", "agent-orchestrator", "obsidian-system"],
+  },
+  {
+    slug: "automation",
+    name: "Automation",
+    category: "engineering",
+    score: 82,
+    levelLabel: "Advanced",
+    description: "Scripted workflows, CI pipelines, browser automation, and custom tooling.",
+    projectSlugs: ["obsidian-system", "agent-orchestrator", "ctf-penetration-labs"],
+  },
+  {
+    slug: "git",
+    name: "Git / Version Control",
+    category: "engineering",
+    score: 85,
+    levelLabel: "Advanced",
+    description: "Branching strategies, clean commit history, code review and collaborative workflows.",
+    projectSlugs: ["ai-video-editor", "agent-orchestrator", "obsidian-system", "templates-web"],
+  },
+
+  // AI / Systems
+  {
+    slug: "ai-integration",
+    name: "AI Integration",
+    category: "ai",
+    score: 80,
+    levelLabel: "Proficient",
+    description: "Adding LLM APIs to real products: prompt engineering, latency control and cost management.",
+    projectSlugs: ["ai-video-editor", "agent-orchestrator"],
+  },
+  {
+    slug: "agent-systems",
+    name: "Agent Systems",
+    category: "ai",
+    score: 75,
+    levelLabel: "Proficient",
+    description: "Building multi-agent orchestration with task routing, comparison and feedback loops.",
+    projectSlugs: ["agent-orchestrator"],
+  },
+  {
+    slug: "llm-applications",
+    name: "LLM Applications",
+    category: "ai",
+    score: 74,
+    levelLabel: "Proficient",
+    description: "Using language models in practice, for summarising, extracting, classifying and generating text.",
+    projectSlugs: ["ai-video-editor", "agent-orchestrator"],
+  },
+
+  // Security
+  {
+    slug: "web-security",
+    name: "Web Security",
+    category: "security",
+    score: 80,
+    levelLabel: "Advanced",
+    description: "OWASP Top 10, authentication hardening, session management, header policies.",
+    projectSlugs: ["ctf-penetration-labs"],
+  },
+  {
+    slug: "pentesting",
+    name: "Penetration Testing",
+    category: "security",
+    score: 74,
+    levelLabel: "Proficient",
+    description: "Active Directory enumeration and web app testing, using methods learned from CTFs.",
+    projectSlugs: ["ctf-penetration-labs"],
+  },
+  {
+    slug: "linux",
+    name: "Linux",
+    category: "security",
+    score: 83,
+    levelLabel: "Advanced",
+    description: "My daily operating system. Comfortable with the command line, process management, permissions and shell scripting.",
+    projectSlugs: ["ctf-penetration-labs", "obsidian-system"],
+  },
+  {
+    slug: "osint",
+    name: "OSINT",
+    category: "security",
+    score: 65,
+    levelLabel: "Developing",
+    description: "Passive reconnaissance and footprinting, using open-source intelligence (OSINT).",
+    projectSlugs: ["ctf-penetration-labs"],
+  },
+];
+
+export const CATEGORY_LABELS: Record<SkillCategory, string> = {
+  language: "Languages",
+  engineering: "Engineering",
+  ai: "AI / Systems",
+  security: "Security",
+};
+
+export const SKILL_CATEGORIES: SkillCategory[] = ["language", "engineering", "ai", "security"];
+
+export function getSkillsByCategory(category: SkillCategory): Skill[] {
+  return SKILLS.filter((s) => s.category === category);
+}
+
+export function getSkillBySlug(slug: string): Skill | undefined {
+  return SKILLS.find((s) => s.slug === slug);
+}
+
+/**
+ * Homepage shows 6–8 skills, not the whole list (§8.4). Highest scored first,
+ * capped to one per category so the preview reads as a range, not a ranking.
+ */
+export function getHeadlineSkills(limit = 8): Skill[] {
+  const byScore = [...SKILLS].sort((a, b) => b.score - a.score);
+  const picked: Skill[] = [];
+  const seen = new Set<SkillCategory>();
+
+  // One pass to cover every category, then fill up with the next best.
+  for (const skill of byScore) {
+    if (seen.has(skill.category)) continue;
+    seen.add(skill.category);
+    picked.push(skill);
+  }
+  for (const skill of byScore) {
+    if (picked.length >= limit) break;
+    if (!picked.includes(skill)) picked.push(skill);
+  }
+
+  return picked.slice(0, limit).sort((a, b) => b.score - a.score);
+}
+
+/** Projects a skill is evidenced by — powers the §8.6 filter. */
+export function getSkillsForProject(slug: string): Skill[] {
+  return SKILLS.filter((skill) => skill.projectSlugs.includes(slug));
+}
