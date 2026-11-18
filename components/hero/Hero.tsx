@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { motion, useReducedMotion } from "motion/react";
+import { motion } from "motion/react";
 import { ArrowRight, MapPin, Repeat } from "lucide-react";
 import { SITE } from "@/lib/site";
 import { Attractor } from "./Attractor";
@@ -22,14 +22,12 @@ const LOOP = ["build", "break", "fix", "repeat"] as const;
  * stays still unless the visitor does something.
  */
 export function Hero() {
-  const reduce = useReducedMotion();
   const ambient = useAmbientMotion();
-  const [splitSeen, setSplitSeen] = useState(false);
+  const [stage, setStage] = useState<"idle" | "dropped" | "split">("idle");
   const [loopIndex, setLoopIndex] = useState(0);
 
-  const onButterfly = useCallback(() => {
-    window.setTimeout(() => setSplitSeen(true), 6000);
-  }, []);
+  const onButterfly = useCallback(() => setStage((s) => (s === "split" ? s : "dropped")), []);
+  const onSplit = useCallback(() => setStage("split"), []);
 
   // build → break → fix → repeat, one word lit at a time
   useEffect(() => {
@@ -38,14 +36,21 @@ export function Hero() {
     return () => window.clearInterval(id);
   }, [ambient]);
 
-  const rise = (delay: number) =>
-    reduce
-      ? {}
-      : {
-          initial: { opacity: 0, y: 14 },
-          animate: { opacity: 1, y: 0 },
-          transition: { duration: 0.7, delay, ease: [0.16, 1, 0.3, 1] as const },
-        };
+  // Large text comes into focus instead of fading in from nothing: it is
+  // painted (faint, blurred) on the first frame, so it never delays LCP.
+  // (Never branch on reduced motion here: the server cannot know it, and the
+  // markup must match. MotionConfig reducedMotion="user" drops the transforms.)
+  const focus = (delay: number) => ({
+    initial: { opacity: 0.18, filter: "blur(12px)", y: 8 },
+    animate: { opacity: 1, filter: "blur(0px)", y: 0 },
+    transition: { duration: 0.9, delay, ease: [0.16, 1, 0.3, 1] as const },
+  });
+
+  const rise = (delay: number) => ({
+    initial: { opacity: 0, y: 14 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.6, delay, ease: [0.16, 1, 0.3, 1] as const },
+  });
 
   return (
     <section id="top" aria-label="Introduction" className="relative isolate min-h-[100svh] overflow-hidden pt-28 lg:pt-32">
@@ -63,20 +68,20 @@ export function Hero() {
         {/* Copy */}
         <div className="relative z-10 flex flex-col pb-10 lg:pb-24 lg:pt-10">
           <motion.p {...rise(0)} className="font-mono text-sm text-lilac">
-            <TypedText text="$ whoami" delay={150} speed={70} />
+            <TypedText text="$ whoami" delay={100} speed={55} />
           </motion.p>
 
           <motion.h1
-            initial={reduce ? false : { opacity: 0 }}
+            initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.2, delay: reduce ? 0 : 0.75 }}
+            transition={{ duration: 0.2, delay: 0.55 }}
             className="font-display mt-3 text-[clamp(4.2rem,12vw,9.5rem)] font-extrabold leading-[0.88] tracking-[-0.045em]"
           >
-            <DecodeText text={SITE.name} delay={reduce ? 0 : 750} duration={850} letterClassName="name-gradient" />
+            <DecodeText text={SITE.name} delay={550} duration={750} letterClassName="name-gradient" />
           </motion.h1>
 
           <motion.p
-            {...rise(1.25)}
+            {...focus(0.85)}
             className="group font-display mt-6 text-[clamp(1.9rem,4.4vw,3.35rem)] font-bold leading-[1.04] tracking-[-0.03em] text-ink"
           >
             I build software
@@ -84,12 +89,12 @@ export function Hero() {
             and learn how it <CrackedWord>breaks.</CrackedWord>
           </motion.p>
 
-          <motion.p {...rise(1.4)} className="mt-6 max-w-[34rem] text-[1.0625rem] leading-relaxed text-ink-2">
+          <motion.p {...focus(1)} className="mt-6 max-w-[34rem] text-[1.0625rem] leading-relaxed text-ink-2">
             Backend systems, automation pipelines and AI tools in Python and TypeScript — tested as if
             someone is going to attack them. Usually, that someone is me.
           </motion.p>
 
-          <motion.div {...rise(1.55)} className="mt-9 flex flex-wrap items-center gap-3.5">
+          <motion.div {...rise(1.15)} className="mt-9 flex flex-wrap items-center gap-3.5">
             <span data-magnetic="0.22" className="inline-block transition-transform duration-300 ease-[var(--ease-out)]">
               <a href="#projects" className="btn-primary">
                 View my work <ArrowRight size={17} aria-hidden="true" />
@@ -102,7 +107,7 @@ export function Hero() {
             </span>
           </motion.div>
 
-          <motion.div {...rise(1.7)} className="mt-8 flex flex-wrap items-center gap-3">
+          <motion.div {...rise(1.25)} className="mt-8 flex flex-wrap items-center gap-3">
             {[
               { href: SITE.links.github, label: "GitHub", Icon: GitHubIcon },
               { href: SITE.links.discord, label: "Discord", Icon: DiscordIcon },
@@ -130,7 +135,7 @@ export function Hero() {
             )}
           </motion.div>
 
-          <motion.div {...rise(1.85)} className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3 text-sm text-ink-2">
+          <motion.div {...rise(1.35)} className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3 text-sm text-ink-2">
             <span className="inline-flex items-center gap-2">
               <MapPin size={15} className="text-lilac" aria-hidden="true" />
               Currently in {SITE.location}
@@ -144,20 +149,27 @@ export function Hero() {
 
         {/* Visual */}
         <motion.div
-          initial={reduce ? false : { opacity: 0, scale: 0.96 }}
+          initial={{ opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1.6, delay: reduce ? 0 : 0.3, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 1.6, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
           className="relative h-[380px] sm:h-[460px] lg:absolute lg:right-[max(0px,calc((100vw-1240px)/2))] lg:top-[88px] lg:h-[calc(100%-200px)] lg:w-[min(52vw,700px)]"
         >
-          <Attractor className="absolute inset-0" onButterfly={onButterfly} />
+          {/* The canvas bleeds into the right margin so a wing is never clipped */}
+          <Attractor className="absolute inset-0 lg:-right-[14%]" onButterfly={onButterfly} onSplit={onSplit} />
 
           <div className="absolute right-[4%] top-[2%] hidden lg:block">
           <HandNote arrow="down-left" rotate={-5} className="text-[1.35rem]">
-            {splitSeen ? (
+            {stage === "split" ? (
               <>
                 see? same start,
                 <br />
                 different universe.
+              </>
+            ) : stage === "dropped" ? (
+              <>
+                two trails, one path…
+                <br />
+                for now. keep watching.
               </>
             ) : (
               <>

@@ -7,15 +7,14 @@ import { AppProviders } from "@/providers/AppProviders";
 import { CommandPalette } from "@/components/command-palette/CommandPalette";
 import { Terminal } from "@/components/terminal/Terminal";
 import { SkyBackground } from "@/components/layout/SkyBackground";
-import { MotionToggle } from "@/components/layout/MotionToggle";
 import { Cursor } from "@/components/cursor/Cursor";
 import { SITE } from "@/lib/site";
 import { MOTION_BOOT_SCRIPT } from "@/lib/ambient-motion";
 
+// Variable font: one file covers every weight we use (600–800)
 const bricolage = Bricolage_Grotesque({
   variable: "--font-bricolage",
   subsets: ["latin"],
-  weight: ["600", "700", "800"],
 });
 
 const geist = Geist({
@@ -96,7 +95,6 @@ export default function RootLayout({
           {/* Global overlays — rendered outside the page scroll context */}
           <CommandPalette />
           <Terminal />
-          <MotionToggle />
         </AppProviders>
         <Cursor />
       </body>

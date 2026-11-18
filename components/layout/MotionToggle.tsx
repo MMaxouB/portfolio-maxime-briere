@@ -6,9 +6,10 @@ import { setMotionPaused, usePausedByUser } from "@/lib/ambient-motion";
 /**
  * Pause every ambient animation on the site (WCAG 2.2.2). The choice is
  * remembered. Hidden when the OS already asks for reduced motion, since
- * nothing ambient runs then.
+ * nothing ambient runs then. Lives in the top bar so it never covers content.
  */
-export function MotionToggle() {
+/** `className` carries the display (default "flex") so callers can hide it per breakpoint. */
+export function MotionToggle({ className = "flex" }: { className?: string }) {
   const paused = usePausedByUser();
 
   return (
@@ -18,9 +19,9 @@ export function MotionToggle() {
       aria-pressed={paused}
       aria-label={paused ? "Resume background animations" : "Pause background animations"}
       title={paused ? "Resume animations" : "Pause animations"}
-      className="glass fixed bottom-5 right-5 z-40 flex h-11 w-11 items-center justify-center !rounded-full text-ink-2 transition-colors hover:text-ink motion-reduce:hidden"
+      className={`h-9 w-9 items-center justify-center rounded-full border border-line-strong bg-deep/50 text-ink-3 transition-colors hover:border-lilac/50 hover:text-ink motion-reduce:hidden ${className}`}
     >
-      {paused ? <Play size={15} aria-hidden="true" /> : <Pause size={15} aria-hidden="true" />}
+      {paused ? <Play size={13} aria-hidden="true" /> : <Pause size={13} aria-hidden="true" />}
     </button>
   );
 }

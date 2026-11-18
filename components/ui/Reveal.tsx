@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { motion, useInView, useReducedMotion } from "motion/react";
+import { motion, useInView } from "motion/react";
 
 /**
  * Entrance for blocks of content: they come into focus (blur → sharp) rather
@@ -20,14 +20,10 @@ export function Reveal({
 }) {
   const ref = useRef<HTMLElement>(null);
   const inView = useInView(ref, { once: true, margin: "0px 0px -12% 0px" });
-  const reduce = useReducedMotion();
   const Tag = motion[as];
 
-  if (reduce) {
-    const Plain = as;
-    return <Plain className={className}>{children}</Plain>;
-  }
-
+  // No reduced-motion branch: it would differ between server and client.
+  // MotionConfig reducedMotion="user" (AppProviders) removes the movement.
   return (
     <Tag
       ref={ref as never}
@@ -58,16 +54,14 @@ export function LineReveal({
 }) {
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, margin: "0px 0px -10% 0px" });
-  const reduce = useReducedMotion();
-
   return (
     <span ref={ref} className={className}>
       {lines.map((line, i) => (
         <span key={i} className="block overflow-hidden pb-[0.08em]">
           <motion.span
             className={`block ${lineClassName}`}
-            initial={reduce ? false : { y: "105%" }}
-            animate={inView || reduce ? { y: "0%" } : undefined}
+            initial={{ y: "105%" }}
+            animate={inView ? { y: "0%" } : undefined}
             transition={{ duration: 0.9, delay: delay + i * 0.12, ease: [0.16, 1, 0.3, 1] }}
           >
             {line}

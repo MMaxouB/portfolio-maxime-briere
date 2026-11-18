@@ -363,7 +363,7 @@ export function Terminal() {
                   dispatch({ type: "SET_INPUT", value: event.target.value })
                 }
                 onKeyDown={handleKeyDown}
-                className="flex-1 bg-transparent text-base text-ink caret-lilac outline-none placeholder:text-ink-3 md:text-sm"
+                className="flex-1 bg-transparent text-base text-ink caret-lilac outline-none placeholder:text-ink-3 focus-visible:outline-none md:text-sm"
                 placeholder="type a command…"
                 autoCapitalize="off"
                 autoComplete="off"

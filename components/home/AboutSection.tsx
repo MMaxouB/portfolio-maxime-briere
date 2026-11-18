@@ -70,12 +70,14 @@ export function AboutSection() {
               {ABOUT_FACTS.map((fact, i) => {
                 const Icon = FACT_ICONS[fact.icon];
                 return (
-                  <Reveal as="li" key={fact.title} delay={0.1 + i * 0.08} className="glass lit p-4">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-line-strong bg-deep/70 text-lilac">
+                  <Reveal as="li" key={fact.title} delay={0.1 + i * 0.08} className="glass lit flex items-center gap-4 p-4 sm:block">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-line-strong bg-deep/70 text-lilac">
                       <Icon size={17} aria-hidden="true" />
                     </span>
-                    <p className="mt-4 text-[15px] font-semibold leading-snug text-ink">{fact.title}</p>
-                    <p className="mt-1 text-[13px] text-ink-3">{fact.caption}</p>
+                    <div>
+                      <p className="text-[15px] font-semibold leading-snug text-ink sm:mt-4">{fact.title}</p>
+                      <p className="mt-1 text-[13px] text-ink-3">{fact.caption}</p>
+                    </div>
                   </Reveal>
                 );
               })}
@@ -128,27 +130,24 @@ export function AboutSection() {
 
         {/* Measured, not claimed */}
         <Reveal delay={0.1}>
-          <dl className="glass mt-20 grid grid-cols-2 overflow-hidden lg:grid-cols-4">
+          <ul aria-label="Numbers" className="glass mt-20 grid grid-cols-2 overflow-hidden lg:grid-cols-4">
             {stats.map(({ icon: Icon, value, suffix, label }, i) => (
-              <div
+              <li
                 key={label}
                 className={`flex items-center gap-4 border-line p-5 sm:p-6 ${STAT_BORDERS[i]}`}
               >
                 <span className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-line-strong bg-deep/70 text-lilac sm:flex">
                   <Icon size={19} aria-hidden="true" />
                 </span>
-                <div className="min-w-0">
-                  <dt className="sr-only">{label}</dt>
-                  <dd className="font-display text-[2rem] font-extrabold leading-none tracking-[-0.03em] text-ink sm:text-[2.3rem]">
+                <p className="min-w-0">
+                  <span className="font-display block text-[2rem] font-extrabold leading-none tracking-[-0.03em] text-ink sm:text-[2.3rem]">
                     <CountUp to={value} suffix={suffix} />
-                  </dd>
-                  <dd aria-hidden="true" className="mt-1.5 text-[13px] leading-snug text-ink-3">
-                    {label}
-                  </dd>
-                </div>
-              </div>
+                  </span>
+                  <span className="mt-1.5 block text-[13px] leading-snug text-ink-3">{label}</span>
+                </p>
+              </li>
             ))}
-          </dl>
+          </ul>
         </Reveal>
       </div>
     </section>

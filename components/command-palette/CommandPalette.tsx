@@ -159,7 +159,7 @@ export function CommandPalette() {
                 onKeyDown={onKeyDown}
                 placeholder="Search pages, projects, technologies…"
                 // text-base below the md breakpoint keeps iOS Safari from zooming on focus
-                className="h-14 flex-1 bg-transparent text-base text-ink outline-none placeholder:text-ink-3 md:text-[15px]"
+                className="h-14 flex-1 bg-transparent text-base text-ink outline-none placeholder:text-ink-3 focus-visible:outline-none md:text-[15px]"
                 autoComplete="off"
                 spellCheck={false}
                 role="combobox"

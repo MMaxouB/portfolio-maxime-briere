@@ -10,6 +10,7 @@ import { SITE } from "@/lib/site";
 import { LogoMark } from "./LogoMark";
 import { MobileMenu } from "./MobileMenu";
 import { PaletteButton } from "./PaletteButton";
+import { MotionToggle } from "./MotionToggle";
 
 /**
  * Top bar. On the home page the links are in-page anchors with a scroll-spy;
@@ -96,6 +97,7 @@ export function Navbar() {
         </nav>
 
         <div className="flex items-center gap-2.5">
+          <MotionToggle className="hidden md:flex" />
           <PaletteButton />
           <span data-magnetic="0.2" className="hidden transition-transform duration-300 ease-[var(--ease-out)] sm:inline-block">
             <Link

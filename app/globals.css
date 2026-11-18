@@ -19,7 +19,7 @@
 
   --ink: #eeebff;
   --ink-2: #aaa4ca;
-  --ink-3: #736d96;
+  --ink-3: #8a84ad;
 
   --violet: #8b6cff;
   --lilac: #c4b5ff;
@@ -199,7 +199,8 @@ html.has-cursor [contenteditable="true"] {
     padding: 0.95rem 1.5rem;
     font-weight: 600;
     color: #fff;
-    background: linear-gradient(100deg, #7c5cff 0%, #5b6cff 100%);
+    /* Deep enough for white text at 5:1 (WCAG AA) */
+    background: linear-gradient(100deg, #6d4cf6 0%, #4c5ae8 100%);
     box-shadow:
       0 0 0 1px rgba(196, 181, 255, 0.25) inset,
       0 10px 40px -10px rgba(124, 92, 255, 0.75);

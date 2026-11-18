@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { ArrowUpRight, Quote, X } from "lucide-react";
 import {
   CATEGORY_LABELS,
@@ -23,12 +23,11 @@ type Filter = "top" | "all" | SkillCategory;
 
 function SkillCard({ skill, projects }: { skill: Skill; projects: Map<string, Project> }) {
   const [open, setOpen] = useState(false);
-  const reduce = useReducedMotion();
   const panelId = `skill-${skill.slug}`;
   const proof = skill.projectSlugs.map((slug) => projects.get(slug)).filter((p): p is Project => !!p);
 
   return (
-    <div className="glass lit group relative h-full min-h-[148px] overflow-hidden p-4">
+    <div className="glass lit group relative h-full min-h-[156px] overflow-hidden p-4">
       <button
         type="button"
         aria-expanded={open}
@@ -52,17 +51,13 @@ function SkillCard({ skill, projects }: { skill: Skill; projects: Map<string, Pr
         {skill.name}
       </p>
       <div aria-hidden="true" className="bar-track mt-3">
-        {reduce ? (
-          <div className="bar-fill" style={{ transform: `scaleX(${skill.score / 100})` }} />
-        ) : (
-          <motion.div
-            className="bar-fill"
-            initial={{ scaleX: 0 }}
-            whileInView={{ scaleX: skill.score / 100 }}
-            viewport={{ once: true }}
-            transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
-          />
-        )}
+        <motion.div
+          className="bar-fill"
+          initial={{ scaleX: 0 }}
+          whileInView={{ scaleX: skill.score / 100 }}
+          viewport={{ once: true }}
+          transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
+        />
       </div>
       <p aria-hidden="true" className="mt-2.5 flex items-center justify-between text-[12px] text-ink-3">
         <span>{CATEGORY_LABELS[skill.category]}</span>
@@ -75,36 +70,43 @@ function SkillCard({ skill, projects }: { skill: Skill; projects: Map<string, Pr
             id={panelId}
             role="region"
             aria-label={`${skill.name}: where it was used`}
-            initial={reduce ? { opacity: 0 } : { opacity: 0, y: "30%" }}
+            initial={{ opacity: 0, y: "30%" }}
             animate={{ opacity: 1, y: 0 }}
-            exit={reduce ? { opacity: 0 } : { opacity: 0, y: "30%" }}
+            exit={{ opacity: 0, y: "30%" }}
             transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
             className="absolute inset-0 z-20 flex flex-col bg-deep/95 p-4 backdrop-blur-md"
           >
-            <div className="flex items-start justify-between gap-2">
-              <p className="text-[12.5px] leading-snug text-ink-2">{skill.description}</p>
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-[12px] font-medium text-ink">Proven in</p>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="-mr-1 -mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-ink-3 hover:text-ink"
+                className="-mr-1.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-ink-3 hover:text-ink"
                 aria-label={`Close ${skill.name} details`}
                 autoFocus
               >
                 <X size={14} aria-hidden="true" />
               </button>
             </div>
-            <ul className="mt-auto flex flex-wrap gap-1.5 pt-2">
+            <ul className="mt-2 flex flex-wrap gap-1.5">
               {proof.slice(0, 3).map((project) => (
                 <li key={project.slug}>
                   <Link
                     href={`/projects/${project.slug}`}
-                    className="inline-flex items-center gap-1 rounded-full border border-violet/50 bg-violet/15 px-2.5 py-1 text-[11.5px] text-ink transition-colors hover:bg-violet/30"
+                    className="inline-flex max-w-full items-center gap-1 truncate rounded-full border border-violet/50 bg-violet/15 px-2.5 py-1 text-[11.5px] text-ink transition-colors hover:bg-violet/30"
                   >
-                    {project.title} <ArrowUpRight size={11} aria-hidden="true" />
+                    {project.title}
                   </Link>
                 </li>
               ))}
+              {proof.length > 3 && <li className="px-1 py-1 text-[11.5px] text-ink-3">+{proof.length - 3}</li>}
             </ul>
+            <Link
+              href={`/expertise#${skill.slug}`}
+              className="mt-auto inline-flex items-center gap-1 pt-2 text-[12px] text-lilac hover:text-ink"
+            >
+              Why {skill.score}? <ArrowUpRight size={12} aria-hidden="true" />
+            </Link>
           </motion.div>
         )}
       </AnimatePresence>
@@ -114,7 +116,6 @@ function SkillCard({ skill, projects }: { skill: Skill; projects: Map<string, Pr
 
 export function ToolboxSection({ projects }: { projects: Project[] }) {
   const [filter, setFilter] = useState<Filter>("top");
-  const reduce = useReducedMotion();
   const projectMap = useMemo(() => new Map(projects.map((p) => [p.slug, p])), [projects]);
   const headline = useMemo(() => getHeadlineSkills(8), []);
 
@@ -182,15 +183,15 @@ export function ToolboxSection({ projects }: { projects: Project[] }) {
               {filter === "top" ? " — the strongest in each area first." : "."}
             </p>
 
-            <motion.ul layout={!reduce} className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
+            <motion.ul layout className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
               <AnimatePresence mode="popLayout" initial={false}>
                 {visible.map((skill) => (
                   <motion.li
                     key={skill.slug}
-                    layout={!reduce}
-                    initial={reduce ? false : { opacity: 0, scale: 0.94 }}
+                    layout
+                    initial={{ opacity: 0, scale: 0.94 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    exit={reduce ? undefined : { opacity: 0, scale: 0.94 }}
+                    exit={{ opacity: 0, scale: 0.94 }}
                     transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
                   >
                     <SkillCard skill={skill} projects={projectMap} />

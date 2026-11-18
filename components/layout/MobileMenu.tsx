@@ -8,6 +8,7 @@ import { ArrowRight, Menu, Search, SquareTerminal, X } from "lucide-react";
 import { HOME_SECTIONS, SOCIAL_NAV } from "@/lib/navigation";
 import { useDialog } from "@/lib/useDialog";
 import { useApp } from "@/providers/AppProviders";
+import { MotionToggle } from "./MotionToggle";
 
 const MORE = [
   { label: "All projects", href: "/projects" },
@@ -125,7 +126,8 @@ export function MobileMenu() {
                     <SquareTerminal size={15} aria-hidden="true" /> Terminal
                   </button>
                 </div>
-                <div className="flex gap-5 text-sm text-ink-3">
+                <div className="flex items-center gap-5 text-sm text-ink-3">
+                  <MotionToggle />
                   {SOCIAL_NAV.map((item) => (
                     <a
                       key={item.label}

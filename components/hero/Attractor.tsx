@@ -91,20 +91,25 @@ function formatGap(value: number) {
 
 interface AttractorProps {
   className?: string;
+  /** A butterfly was dropped */
   onButterfly?: () => void;
+  /** The latest butterfly is now visibly on another path */
+  onSplit?: () => void;
 }
 
-export function Attractor({ className, onButterfly }: AttractorProps) {
+export function Attractor({ className, onButterfly, onSplit }: AttractorProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gapRef = useRef<HTMLSpanElement>(null);
   const spawnRef = useRef<(sx?: number, sy?: number) => void>(() => {});
   const [hasButterfly, setHasButterfly] = useState(false);
   const onButterflyRef = useRef(onButterfly);
+  const onSplitRef = useRef(onSplit);
 
   useEffect(() => {
     onButterflyRef.current = onButterfly;
-  }, [onButterfly]);
+    onSplitRef.current = onSplit;
+  }, [onButterfly, onSplit]);
 
   useEffect(() => {
     const wrap = wrapRef.current!;
@@ -118,6 +123,8 @@ export function Attractor({ className, onButterfly }: AttractorProps) {
     let width = 0;
     let height = 0;
     let dpr = 1;
+    // On large screens the box bleeds right (see Hero), so the centre sits left of middle
+    let centreX = 0.5;
     let frame = 0;
     let visible = true;
     let last = performance.now();
@@ -164,6 +171,7 @@ export function Attractor({ className, onButterfly }: AttractorProps) {
       dpr = Math.min(window.devicePixelRatio || 1, 2);
       width = rect.width;
       height = rect.height;
+      centreX = window.innerWidth >= 1024 ? 0.53 : 0.5;
       canvas.width = Math.round(width * dpr);
       canvas.height = Math.round(height * dpr);
       canvas.style.width = `${width}px`;
@@ -186,12 +194,17 @@ export function Attractor({ className, onButterfly }: AttractorProps) {
       const depth = z * sp + D * cp;
       const persp = 110 / (110 + depth);
       const scale = Math.min(width / 52, height / 58);
-      // Centre sits a little right of the box so the left wing never reaches the copy
-      return [width * 0.56 + X * scale * persp, height / 2 - Y * scale * persp, depth];
+      return [width * centreX + X * scale * persp, height / 2 - Y * scale * persp, depth];
     }
 
-    function step(frames: number) {
-      const steps = Math.max(1, Math.min(8, Math.round(frames * 3)));
+    // After a drop the simulation fast-forwards for a few seconds, so the
+    // split shows up in ~5 s instead of ~15 (λ ≈ 0.9: 1e-5 needs ~15 time units).
+    let boostUntil = 0;
+    let splitAnnounced = true;
+
+    function step(frames: number, now: number) {
+      const boost = now < boostUntil ? 2.8 : 1;
+      const steps = Math.max(1, Math.min(14, Math.round(frames * 3 * boost)));
       for (const trail of trails) {
         for (let i = 0; i < steps; i++) {
           trail.state = rk4(trail.state, DT);
@@ -285,6 +298,11 @@ export function Attractor({ className, onButterfly }: AttractorProps) {
         latest.state[2] - parent.state[2]
       );
       gapEl.textContent = formatGap(d);
+      if (!splitAnnounced && d > 2) {
+        splitAnnounced = true;
+        boostUntil = 0;
+        onSplitRef.current?.();
+      }
     }
 
     let gapTick = 0;
@@ -297,7 +315,7 @@ export function Attractor({ className, onButterfly }: AttractorProps) {
         eased.y += (pointer.y - eased.y) * 0.04;
         theta = FRONT + Math.sin(clock * 0.3) * 0.5 + eased.x * 0.35;
         phi = 0.3 + eased.y * 0.2;
-        step(frames);
+        step(frames, now);
         render(now);
         if (now - gapTick > 120) {
           updateGap();
@@ -316,7 +334,6 @@ export function Attractor({ className, onButterfly }: AttractorProps) {
     }
 
     spawnRef.current = (sx?: number, sy?: number) => {
-      if (!ambientMotionOn()) return;
       // Copy the trail whose head is closest to where the click landed
       const px = sx ?? width / 2;
       const py = sy ?? height / 2;
@@ -345,6 +362,23 @@ export function Attractor({ className, onButterfly }: AttractorProps) {
       if (trails.length > 3 + MAX_BUTTERFLIES) trails.splice(3, 1);
       const [hx, hy] = project(source.state);
       sparks.push({ x: hx, y: hy, t: performance.now() });
+      boostUntil = performance.now() + 7000;
+      splitAnnounced = false;
+
+      // No animation allowed (reduced motion or paused): skip to the end
+      // instead — integrate ~15 time units at once and show the split result.
+      if (!ambientMotionOn()) {
+        for (const trail of trails) {
+          for (let i = 0; i < 2700; i++) {
+            trail.state = rk4(trail.state, DT);
+            push(trail);
+          }
+        }
+        sparks.length = 0;
+        render(performance.now());
+        // The readout mounts on this click; fill it on the next frame
+        requestAnimationFrame(updateGap);
+      }
       setHasButterfly(true);
       onButterflyRef.current?.();
     };
@@ -395,7 +429,7 @@ export function Attractor({ className, onButterfly }: AttractorProps) {
         data-cursor="Drop ε"
         className="absolute inset-0 touch-manipulation"
       />
-      <div className="glass absolute bottom-3 left-3 flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-xs sm:bottom-6 sm:left-6">
+      <div className="glass absolute bottom-3 left-3 flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-xs sm:bottom-6 sm:left-6 lg:left-[4%]">
         <div className="font-mono leading-relaxed text-ink-2">
           <div className="text-ink">lorenz.py</div>
           {hasButterfly ? (
