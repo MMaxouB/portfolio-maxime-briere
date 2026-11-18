@@ -210,7 +210,7 @@ function FanoutVisual({ p }: { p: string }) {
 function HandwritingVisual({ p }: { p: string }) {
   const md = [
     { text: "## Ch. 3 — Entropy", c: "#c4b5ff" },
-    { text: "**H(X)** = −Σ p log p", c: "#eeebff" },
+    { text: "**H** = −Σ p log p", c: "#eeebff" },
     { text: "- max if p uniform", c: "#aaa4ca" },
     { text: "| x | p(x) |", c: "#8b86ad" },
   ];
