@@ -123,8 +123,10 @@ export function Attractor({ className, onButterfly, onSplit }: AttractorProps) {
     let width = 0;
     let height = 0;
     let dpr = 1;
-    // On large screens the box bleeds right (see Hero), so the centre sits left of middle
-    let centreX = 0.5;
+    // Screen mapping, recomputed on resize so the whole shape always fits
+    let scale = 1;
+    let originX = 0;
+    let originY = 0;
     let frame = 0;
     let visible = true;
     let last = performance.now();
@@ -133,6 +135,9 @@ export function Attractor({ className, onButterfly, onSplit }: AttractorProps) {
     // butterfly. The wings sit on the x = y diagonal (fixed points at
     // ±(8.5, 8.5, 27)), so that view is θ = −π/4. `clock` drives the sway.
     const FRONT = -Math.PI / 4;
+    const SWAY = 0.36; // radians either side of the front view
+    const POINTER_YAW = 0.22;
+    const POINTER_PITCH = 0.14;
     let clock = 0;
     let theta = FRONT;
     let phi = 0.3;
@@ -166,39 +171,72 @@ export function Attractor({ className, onButterfly, onSplit }: AttractorProps) {
     const sparks: Spark[] = [];
     let butterflyCount = 0;
 
-    function resize() {
-      const rect = wrap.getBoundingClientRect();
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
-      width = rect.width;
-      height = rect.height;
-      centreX = window.innerWidth >= 1024 ? 0.53 : 0.5;
-      canvas.width = Math.round(width * dpr);
-      canvas.height = Math.round(height * dpr);
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      if (!ambientMotionOn()) render(0);
-    }
-
-    function project(p: Vec3 | Float32Array, offset = 0): [number, number, number] {
+    /**
+     * Projection in "unit" space (before scaling to pixels): rotate, tilt, apply
+     * perspective. Kept separate from the screen mapping so the bounds of the
+     * shape can be measured once, over the whole range the camera can reach.
+     */
+    function unit(p: Vec3 | Float32Array, offset: number, th: number, ph: number): [number, number, number] {
       const x = p[offset];
       const y = p[offset + 1];
       const z = p[offset + 2] - 25;
-      const ct = Math.cos(theta);
-      const st = Math.sin(theta);
-      const cp = Math.cos(phi);
-      const sp = Math.sin(phi);
+      const ct = Math.cos(th);
+      const st = Math.sin(th);
+      const cp = Math.cos(ph);
+      const sp = Math.sin(ph);
       const X = x * ct - y * st;
       const D = x * st + y * ct;
       const Y = z * cp - D * sp;
       const depth = z * sp + D * cp;
       const persp = 110 / (110 + depth);
-      const scale = Math.min(width / 52, height / 58);
-      return [width * centreX + X * scale * persp, height / 2 - Y * scale * persp, depth];
+      return [X * persp, Y * persp, depth];
+    }
+
+    // Extent of the attractor over every camera angle the sway and the pointer
+    // can produce. Fitting to this — instead of a hand-tuned constant — is what
+    // keeps wings from being clipped at any size.
+    const YAW = SWAY + POINTER_YAW;
+    const bounds = { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity };
+    for (let th = FRONT - YAW; th <= FRONT + YAW + 1e-6; th += YAW / 4) {
+      for (const ph of [0.3 - POINTER_PITCH, 0.3, 0.3 + POINTER_PITCH]) {
+        for (let i = 0; i < ghost.length; i += 6) {
+          const [ux, uy] = unit(ghost[i], 0, th, ph);
+          if (ux < bounds.minX) bounds.minX = ux;
+          if (ux > bounds.maxX) bounds.maxX = ux;
+          if (uy < bounds.minY) bounds.minY = uy;
+          if (uy > bounds.maxY) bounds.maxY = uy;
+        }
+      }
+    }
+
+    function resize() {
+      const rect = wrap.getBoundingClientRect();
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      width = rect.width;
+      height = rect.height;
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      // 8% margin each side leaves room for the glowing heads and the hand note
+      const fit = 0.92;
+      const bw = bounds.maxX - bounds.minX;
+      const bh = bounds.maxY - bounds.minY;
+      scale = Math.min((width * fit) / bw, (height * fit) / bh);
+      originX = width / 2 - ((bounds.minX + bounds.maxX) / 2) * scale;
+      originY = height / 2 + ((bounds.minY + bounds.maxY) / 2) * scale;
+      if (!ambientMotionOn()) render(0);
+    }
+
+    function project(p: Vec3 | Float32Array, offset = 0): [number, number, number] {
+      const [ux, uy, depth] = unit(p, offset, theta, phi);
+      return [originX + ux * scale, originY - uy * scale, depth];
     }
 
     // After a drop the simulation fast-forwards for a few seconds, so the
-    // split shows up in ~5 s instead of ~15 (λ ≈ 0.9: 1e-5 needs ~15 time units).
+    // split shows up in ~6 s instead of ~15 (λ ≈ 0.9: 1e-5 needs ~15 time units).
     let boostUntil = 0;
     let splitAnnounced = true;
 
@@ -313,8 +351,8 @@ export function Attractor({ className, onButterfly, onSplit }: AttractorProps) {
         clock += 0.016 * frames;
         eased.x += (pointer.x - eased.x) * 0.04;
         eased.y += (pointer.y - eased.y) * 0.04;
-        theta = FRONT + Math.sin(clock * 0.3) * 0.5 + eased.x * 0.35;
-        phi = 0.3 + eased.y * 0.2;
+        theta = FRONT + Math.sin(clock * 0.3) * SWAY + eased.x * POINTER_YAW;
+        phi = 0.3 + eased.y * POINTER_PITCH;
         step(frames, now);
         render(now);
         if (now - gapTick > 120) {

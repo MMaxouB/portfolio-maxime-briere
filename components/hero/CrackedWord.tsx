@@ -18,7 +18,7 @@ export function CrackedWord({ children, className = "" }: CrackedWordProps) {
   const bottom = `polygon(${path}, 100% 100%, 0 100%)`;
 
   return (
-    <span className={`relative inline-block ${className}`}>
+    <span className={`relative inline-block pr-[0.1em] -mr-[0.1em] ${className}`}>
       <span className="sr-only">{children}</span>
       {/* Spacer keeps the line box; both halves are painted over it */}
       <span aria-hidden="true" className="invisible">

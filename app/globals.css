@@ -76,6 +76,10 @@
   --radius-card: var(--radius-card);
   --radius-plate: var(--radius-card);
 
+  /* Page width: 1240px on laptops, growing with the viewport up to 1560px on
+     very large screens, so a 2560px monitor is not a narrow strip in a void. */
+  --container-site: clamp(1240px, 72vw, 1560px);
+
   --ease-out: var(--ease-out);
 }
 
@@ -176,6 +180,10 @@ html.has-cursor [contenteditable="true"] {
 
   /* Gradient ink for the one emphasised phrase of a heading */
   .ink-gradient {
+    /* Negative letter-spacing makes the last glyph overhang its box; background-clip:text
+       would cut it. Pad the box and pull the margin back so layout does not change. */
+    padding-right: 0.08em;
+    margin-right: -0.08em;
     background: linear-gradient(100deg, #b6a2ff 0%, #8b6cff 45%, #6a7bff 100%);
     -webkit-background-clip: text;
     background-clip: text;
@@ -184,6 +192,8 @@ html.has-cursor [contenteditable="true"] {
 
   /* The name: lit from above, like the sky behind it */
   .name-gradient {
+    padding-right: 0.1em;
+    margin-right: -0.1em;
     background: linear-gradient(180deg, #ffffff 28%, #d6ccff 62%, #a28bff 100%);
     -webkit-background-clip: text;
     background-clip: text;
@@ -298,6 +308,13 @@ html.has-cursor [contenteditable="true"] {
     mix-blend-mode: overlay;
   }
 
+  /* Section scenery dissolves toward its own top and bottom edges, so no
+     planet or glow ever shows a hard seam where one section ends. */
+  .scenery {
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 16%, #000 84%, transparent 100%);
+    mask-image: linear-gradient(to bottom, transparent 0, #000 16%, #000 84%, transparent 100%);
+  }
+
   .caret::after {
     content: "";
     display: inline-block;
@@ -405,59 +422,170 @@ html[data-motion="paused"] *::after {
 }
 
 /* ---------------------------------------------------------------------------
-   Cursor states (components/cursor/Cursor.tsx)
+   Cursor (components/cursor/Cursor.tsx)
+   The ring carries three faces: default/link (plain ring), ORBIT (glass disc
+   with a rotating caption and a violet core) and SCOPE (viewfinder + tag).
+   Width, height and transform are driven from JS; everything else is here.
    --------------------------------------------------------------------------- */
 
 .cursor-ring {
   width: 34px;
   height: 34px;
+  color: #cdbfff;
   border: 1.5px solid rgba(196, 181, 255, 0.7);
   background: transparent;
   transition:
-    background-color 0.25s var(--ease-out),
-    border-color 0.25s var(--ease-out),
-    opacity 0.2s linear,
-    backdrop-filter 0.25s var(--ease-out);
+    background-color 0.3s var(--ease-out),
+    border-color 0.3s var(--ease-out),
+    box-shadow 0.35s var(--ease-out),
+    opacity 0.2s linear;
   will-change: transform, width, height;
 }
+.cursor-ring::after {
+  /* Click ripple */
+  content: "";
+  position: absolute;
+  inset: -1.5px;
+  border-radius: inherit;
+  border: 1.5px solid rgba(214, 200, 255, 0.9);
+  opacity: 0;
+  pointer-events: none;
+}
+.cursor-ring.is-pulse::after {
+  animation: cursor-ripple 0.55s var(--ease-out);
+}
+@keyframes cursor-ripple {
+  from {
+    transform: scale(0.85);
+    opacity: 0.85;
+  }
+  to {
+    transform: scale(1.7);
+    opacity: 0;
+  }
+}
+
 .cursor-ring[data-mode="link"] {
   border-color: rgba(196, 181, 255, 0.9);
   background: rgba(139, 108, 255, 0.14);
-}
-.cursor-ring[data-mode="label"] {
-  border-color: transparent;
-  background: rgba(124, 92, 255, 0.92);
-  box-shadow: 0 10px 40px -8px rgba(124, 92, 255, 0.8);
 }
 .cursor-ring[data-mode="text"],
 .cursor-ring[data-mode="hidden"] {
   opacity: 0 !important;
 }
-.cursor-label {
-  font-family: var(--font-geist), sans-serif;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  color: #fff;
-  white-space: nowrap;
+
+/* Parts that only exist in a labelled mode start collapsed */
+.cursor-orbit,
+.cursor-scope,
+.cursor-core,
+.cursor-tag {
+  position: absolute;
+  pointer-events: none;
   opacity: 0;
-  transform: scale(0.6);
   transition:
-    opacity 0.2s var(--ease-out),
-    transform 0.3s var(--ease-spring);
+    opacity 0.22s var(--ease-out),
+    transform 0.5s var(--ease-spring);
 }
-.cursor-ring[data-mode="label"] .cursor-label {
+.cursor-orbit,
+.cursor-scope {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: scale(0.72);
+  overflow: visible;
+}
+
+/* ORBIT ------------------------------------------------------------------ */
+.cursor-ring[data-mode="orbit"] {
+  border-color: rgba(196, 181, 255, 0.34);
+  background: radial-gradient(circle, rgba(34, 24, 92, 0.42) 0 30%, rgba(14, 10, 38, 0.62) 100%);
+  -webkit-backdrop-filter: blur(5px) saturate(150%);
+  backdrop-filter: blur(5px) saturate(150%);
+  box-shadow:
+    0 14px 44px -12px rgba(124, 92, 255, 0.75),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+.cursor-ring[data-mode="orbit"] .cursor-orbit {
   opacity: 1;
   transform: scale(1);
 }
+.cursor-orbit text {
+  font-family: var(--font-geist), sans-serif;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  fill: #dcd2ff;
+}
+.cursor-orbit-spin {
+  transform-origin: 60px 60px;
+  animation: spin-slow 14s linear infinite;
+}
+.cursor-core {
+  left: 50%;
+  top: 50%;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 9999px;
+  color: #fff;
+  background: linear-gradient(135deg, #8b6cff, #5b6cff);
+  box-shadow:
+    0 0 26px rgba(124, 92, 255, 0.85),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+  transform: translate(-50%, -50%) scale(0.35);
+}
+.cursor-ring[data-mode="orbit"] .cursor-core {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* SCOPE ------------------------------------------------------------------ */
+.cursor-ring[data-mode="scope"] {
+  border-color: transparent;
+  background: radial-gradient(circle, rgba(139, 108, 255, 0.12), transparent 70%);
+}
+.cursor-ring[data-mode="scope"] .cursor-scope {
+  opacity: 1;
+  transform: scale(1);
+}
+.cursor-scope-spin {
+  transform-origin: 50px 50px;
+  animation: spin-slow 18s linear infinite;
+}
+.cursor-scope-dash {
+  transform-origin: 50px 50px;
+  animation: spin-slow 9s linear infinite reverse;
+}
+.cursor-tag {
+  left: 50%;
+  top: calc(100% + 10px);
+  padding: 4px 11px;
+  border-radius: 9999px;
+  font-family: var(--font-geist), sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: #fff;
+  white-space: nowrap;
+  background: linear-gradient(135deg, #7c5cff, #5b6cff);
+  box-shadow: 0 8px 26px -8px rgba(124, 92, 255, 0.9);
+  transform: translate(-50%, -6px) scale(0.85);
+}
+.cursor-ring[data-mode="scope"] .cursor-tag {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
+}
+
 .cursor-dot {
   background: #fff;
   box-shadow: 0 0 10px 2px rgba(196, 181, 255, 0.8);
   transition: opacity 0.2s linear;
   will-change: transform;
 }
+/* The exact pointer dot stays in SCOPE (precision matters there) and hides elsewhere */
 .cursor-dot[data-mode="link"],
-.cursor-dot[data-mode="label"],
+.cursor-dot[data-mode="orbit"],
 .cursor-dot[data-mode="text"],
 .cursor-dot[data-mode="hidden"] {
   opacity: 0 !important;
@@ -656,4 +784,45 @@ html[data-motion="paused"] *::after {
 
 .mv-beacon {
   animation: mv-pulse 2.6s ease-in-out infinite;
+}
+
+
+/* ---------------------------------------------------------------------------
+   Page transitions (app/template.tsx, React <ViewTransition>)
+   The page that leaves clears out quickly; the new one comes into focus a beat
+   later — blurred, slightly low, then sharp — so arrival reads as arrival and
+   the two never compete. The nav, the sky and the footer are outside it.
+   --------------------------------------------------------------------------- */
+
+::view-transition-old(.page-out) {
+  animation: 170ms ease-in both page-leave;
+}
+::view-transition-new(.page-in) {
+  animation: 620ms var(--ease-out) 110ms both page-arrive;
+}
+@keyframes page-leave {
+  to {
+    opacity: 0;
+    filter: blur(6px);
+    transform: translateY(-6px);
+  }
+}
+@keyframes page-arrive {
+  from {
+    opacity: 0;
+    filter: blur(12px);
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
 }

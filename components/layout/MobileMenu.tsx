@@ -30,7 +30,7 @@ export function MobileMenu() {
   const anchor = (id: string) => (pathname === "/" ? `#${id}` : `/#${id}`);
 
   return (
-    <div className="md:hidden">
+    <div className="lg:hidden">
       <button
         type="button"
         onClick={() => setIsOpen(true)}

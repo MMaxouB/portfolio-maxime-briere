@@ -21,7 +21,6 @@ import { getFeaturedProjects, getProjects } from "@/lib/projects";
 import { SectionHeader, Em } from "@/components/ui/SectionHeader";
 import { Reveal } from "@/components/ui/Reveal";
 import { CountUp } from "@/components/ui/CountUp";
-import { Planet } from "@/components/scenery/Planet";
 
 /** 2×2 on small screens, one row on large — borders drawn per cell. */
 const STAT_BORDERS = [
@@ -46,19 +45,24 @@ export function AboutSection() {
   ];
 
   return (
-    <section id="about" aria-labelledby="about-title" className="relative isolate overflow-hidden pb-16 pt-24 sm:pb-20 sm:pt-32">
-      {/* Scenery: a ringed world high on the right, a haze low on the left */}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
-        <Planet ring tone="indigo" className="absolute -right-[12%] -top-[6%] w-[46vw] max-w-[620px] opacity-55 lg:-right-[6%]" />
+    <section
+      id="about"
+      aria-labelledby="about-title"
+      // Empty areas must not catch the mouse: the hero planet sinks into this section
+      // and is draggable through it. The content blocks below opt back in.
+      className="pointer-events-none relative isolate overflow-hidden pb-16 pt-24 sm:pb-20 sm:pt-32"
+    >
+      {/* Scenery: a haze low on the left (the 3D planet arrives from the hero above) */}
+      <div aria-hidden="true" className="scenery pointer-events-none absolute inset-0 -z-10">
         <div
           className="absolute -left-[20%] top-[40%] h-[60%] w-[60%]"
           style={{ background: "radial-gradient(closest-side, rgba(91,108,255,0.12), transparent)" }}
         />
       </div>
 
-      <div className="mx-auto max-w-[1240px] px-5 sm:px-8">
+      <div className="mx-auto max-w-site px-5 sm:px-8">
         <div className="grid grid-cols-1 gap-14 lg:grid-cols-[minmax(0,1.12fr)_minmax(0,0.88fr)] lg:gap-16">
-          <div>
+          <div className="pointer-events-auto">
             <SectionHeader
               path="~/about"
               id="about-title"
@@ -93,7 +97,7 @@ export function AboutSection() {
             </Reveal>
           </div>
 
-          <Reveal delay={0.15} className="lg:pt-24">
+          <Reveal delay={0.15} className="pointer-events-auto lg:pt-24">
             <div className="glass lit p-5 sm:p-7">
               <div className="flex items-center justify-between">
                 <h3 className="font-display text-[1.35rem] font-bold tracking-[-0.02em] text-ink">What I work on</h3>
@@ -129,7 +133,7 @@ export function AboutSection() {
         </div>
 
         {/* Measured, not claimed */}
-        <Reveal delay={0.1}>
+        <Reveal delay={0.1} className="pointer-events-auto">
           <ul aria-label="Numbers" className="glass mt-20 grid grid-cols-2 overflow-hidden lg:grid-cols-4">
             {stats.map(({ icon: Icon, value, suffix, label }, i) => (
               <li

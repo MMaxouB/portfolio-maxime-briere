@@ -9,7 +9,7 @@ import { Planet } from "@/components/scenery/Planet";
 export function ProjectsSection({ projects }: { projects: Project[] }) {
   return (
     <section id="projects" aria-labelledby="projects-title" className="relative isolate overflow-hidden py-24 sm:py-28">
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
+      <div aria-hidden="true" className="scenery pointer-events-none absolute inset-0 -z-10">
         <div
           className="absolute left-1/2 top-[8%] h-[50%] w-[80%] -translate-x-1/2"
           style={{ background: "radial-gradient(closest-side, rgba(124,92,255,0.14), transparent)" }}
@@ -19,7 +19,7 @@ export function ProjectsSection({ projects }: { projects: Project[] }) {
         <div className="absolute inset-x-0 bottom-0 h-56 bg-gradient-to-b from-transparent to-night" />
       </div>
 
-      <div className="relative mx-auto max-w-[1240px] px-5 sm:px-8">
+      <div className="relative mx-auto max-w-site px-5 sm:px-8">
         <div className="absolute right-6 top-0 hidden lg:block">
           <HandNote rotate={8} className="text-[1.3rem]">
             build,

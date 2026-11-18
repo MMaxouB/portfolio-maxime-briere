@@ -94,7 +94,7 @@ export function ContactSection({ standalone = false }: { standalone?: boolean })
       aria-labelledby="contact-title"
       className={`relative isolate overflow-hidden ${standalone ? "pb-16 pt-32 sm:pt-40" : "py-24 sm:py-32"}`}
     >
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
+      <div aria-hidden="true" className="scenery pointer-events-none absolute inset-0 -z-10">
         <Planet tone="violet" className="absolute -left-[14%] top-[6%] w-[38vw] max-w-[520px] opacity-40" />
         <div
           className="absolute right-[-10%] top-[20%] h-[70%] w-[60%]"
@@ -102,7 +102,7 @@ export function ContactSection({ standalone = false }: { standalone?: boolean })
         />
       </div>
 
-      <div className="mx-auto grid max-w-[1240px] grid-cols-1 gap-12 px-5 sm:px-8 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:gap-14">
+      <div className="mx-auto grid max-w-site grid-cols-1 gap-12 px-5 sm:px-8 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:gap-14">
         <div>
           <SectionHeader
             as={standalone ? "h1" : "h2"}

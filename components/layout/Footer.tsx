@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, Send } from "lucide-react";
+import { ArrowUpRight, Mail, Send } from "lucide-react";
 import { HOME_SECTIONS } from "@/lib/navigation";
 import { SITE } from "@/lib/site";
 import { LogoMark } from "./LogoMark";
@@ -32,7 +32,7 @@ export function Footer() {
         />
       </div>
 
-      <div className="mx-auto max-w-[1240px] px-5 sm:px-8">
+      <div className="mx-auto max-w-site px-5 sm:px-8">
         <div className="text-center">
           <span className="inline-flex rounded-full border border-line-strong bg-deep/60 px-4 py-1.5 font-mono text-xs text-ink-2 backdrop-blur">
             $ exit 0
@@ -60,6 +60,9 @@ export function Footer() {
               Backend, automation and AI tools — built carefully, then attacked on purpose.
             </p>
             <div className="mt-5 flex gap-2.5">
+              <a href={`mailto:${SITE.email}`} aria-label={`Send an email to ${SITE.email}`} title={SITE.email} className="glass flex h-10 w-10 items-center justify-center !rounded-xl text-ink-2 transition-colors hover:text-ink">
+                <Mail size={17} aria-hidden="true" />
+              </a>
               <a href={SITE.links.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub (opens in a new tab)" className="glass flex h-10 w-10 items-center justify-center !rounded-xl text-ink-2 transition-colors hover:text-ink">
                 <GitHubIcon size={17} />
               </a>
@@ -117,7 +120,7 @@ export function Footer() {
       <div className="relative mt-6 h-[340px] sm:h-[440px]">
         <Skyline className="absolute inset-0 h-full w-full" />
         <div aria-hidden="true" className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-night to-transparent" />
-        <div className="absolute inset-x-0 bottom-5 mx-auto max-w-[1240px] px-5 sm:px-8">
+        <div className="absolute inset-x-0 bottom-5 mx-auto max-w-site px-5 sm:px-8">
           <div className="glass flex flex-col items-center justify-between gap-2 !rounded-2xl px-5 py-4 text-[13px] text-ink-2 sm:flex-row">
             <p>
               © <CurrentYear buildYear={BUILD_YEAR} /> {SITE.name}. Built with Next.js, drawn in SVG and canvas.

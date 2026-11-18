@@ -29,7 +29,7 @@ export default function CyberPage() {
         />
       </div>
 
-      <div className="mx-auto max-w-[1180px] px-5 sm:px-8">
+      <div className="mx-auto max-w-site px-5 sm:px-8">
         <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]">
           <SectionHeader
             as="h1"

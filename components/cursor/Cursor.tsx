@@ -6,29 +6,65 @@ import { useEffect, useRef } from "react";
  * Custom pointer — a dot that tracks exactly and a ring that follows on a
  * spring, stretching along its direction of travel.
  *
- * The ring says what a click will do:
- *   link / button        → grows and fills softly
- *   [data-cursor="..."]  → becomes a disc carrying that label ("Open", "Drop ε")
- *   text field           → steps aside so the system I-beam shows
+ * What the ring becomes says what a click will do:
  *
- * The same pointer loop also feeds two cheap effects so there is only one
+ *   link / button          grows and fills softly
+ *   data-cursor="Read…"    ORBIT: glass disc, the label runs around its edge
+ *                          like a rotating caption, a violet core with an arrow
+ *   data-cursor="Drop ε"   SCOPE: viewfinder brackets that slowly turn, the
+ *                          exact pointer dot stays visible, a small tag below
+ *   text field             steps aside so the system I-beam shows
+ *
+ * Long labels (> 9 characters) use ORBIT, short ones SCOPE; force one with
+ * data-cursor-style="orbit" | "scope". An empty data-cursor means "no label",
+ * data-cursor="none" hides the custom pointer entirely.
+ *
+ * The same pointer loop feeds two cheap effects so there is only one
  * pointermove listener on the page:
- *   .lit elements        → --mx/--my for the border light (globals.css)
- *   [data-magnetic]      → pulled a few pixels towards the pointer
+ *   .lit elements          --mx/--my for the border light (globals.css)
+ *   [data-magnetic]        pulled a few pixels towards the pointer
+ *
+ * Calm by construction: the mode is resolved on every move (so it can never go
+ * stale), and leaving a labelled element is delayed by a beat — crossing the
+ * gap between two cards no longer flashes back to the small ring.
  *
  * Mouse only. Touch and pen keep their native behaviour, and nothing here runs
  * until a fine pointer is confirmed.
  */
 
-type Mode = "default" | "link" | "label" | "text" | "hidden";
+type Mode = "default" | "link" | "text" | "hidden" | "orbit" | "scope";
 
 const INTERACTIVE = "a, button, [role='button'], summary, select, label[for]";
-const TEXT_FIELD = "input:not([type='checkbox']):not([type='radio']):not([type='range']), textarea, [contenteditable='true']";
+const TEXT_FIELD =
+  "input:not([type='checkbox']):not([type='radio']):not([type='range']), textarea, [contenteditable='true']";
+
+const SIZE: Record<Mode, number> = {
+  default: 34,
+  link: 54,
+  text: 0,
+  hidden: 0,
+  orbit: 112,
+  scope: 70,
+};
+/** How quickly the ring catches up with the pointer — tighter when it carries a label */
+const FOLLOW: Record<Mode, number> = {
+  default: 0.2,
+  link: 0.24,
+  text: 0.3,
+  hidden: 0.3,
+  orbit: 0.42,
+  scope: 0.5,
+};
+/** Hold the previous mode this long when leaving a labelled element (ms) */
+const LEAVE_DELAY = 140;
+
+const ORBIT_CIRCUMFERENCE = 2 * Math.PI * 47;
 
 export function Cursor() {
   const dotRef = useRef<HTMLDivElement>(null);
   const ringRef = useRef<HTMLDivElement>(null);
-  const labelRef = useRef<HTMLSpanElement>(null);
+  const tagRef = useRef<HTMLSpanElement>(null);
+  const orbitTextRef = useRef<SVGTextPathElement>(null);
   const glowRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -37,44 +73,79 @@ export function Cursor() {
 
     const dot = dotRef.current!;
     const ring = ringRef.current!;
-    const label = labelRef.current!;
+    const tag = tagRef.current!;
+    const orbitText = orbitTextRef.current!;
     const glow = glowRef.current!;
     const root = document.documentElement;
 
     const target = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
     const ringPos = { ...target };
     const glowPos = { ...target };
-    let size = 34;
-    let sizeTarget = 34;
+    let size: number = SIZE.default;
     let visible = false;
     let pressed = false;
     let mode: Mode = "default";
+    let label = "";
     let frame = 0;
     let magnet: HTMLElement | null = null;
-    let lit: HTMLElement | null = null;
+    let leaveTimer = 0;
 
     root.classList.add("has-cursor");
 
-    function setMode(next: Mode, text = "") {
-      if (next === mode && label.textContent === text) return;
+    function apply(next: Mode, text: string) {
+      if (next === mode && text === label) return;
+      const labelChanged = text !== label;
       mode = next;
+      label = text;
       ring.dataset.mode = next;
       dot.dataset.mode = next;
-      label.textContent = text;
-      sizeTarget =
-        next === "label" ? 92 : next === "link" ? 54 : next === "text" ? 0 : 34;
+      if (labelChanged) {
+        tag.textContent = text;
+        if (next === "orbit") {
+          // Fill the circle with the caption, repeated, spread evenly
+          const unit = `${text}  ·  `;
+          const reps = Math.max(2, Math.round(40 / unit.length));
+          orbitText.textContent = unit.repeat(reps);
+          orbitText.setAttribute("textLength", String(ORBIT_CIRCUMFERENCE - 2));
+        }
+      }
     }
 
-    function resolveMode(el: Element | null) {
-      if (!el || !(el instanceof Element)) return setMode("default");
-      const labelled = el.closest<HTMLElement>("[data-cursor]");
+    /** Where would the pointer be, if nothing delayed the answer? */
+    function resolve(el: Element | null): { mode: Mode; text: string } {
+      if (!el) return { mode: "default", text: "" };
+      const labelled = el.closest<HTMLElement>('[data-cursor]:not([data-cursor=""])');
       if (labelled) {
         const text = labelled.dataset.cursor ?? "";
-        return text === "none" ? setMode("hidden") : setMode("label", text);
+        if (text === "none") return { mode: "hidden", text: "" };
+        const style = labelled.dataset.cursorStyle;
+        const chosen: Mode = style === "orbit" || style === "scope" ? style : text.length > 9 ? "orbit" : "scope";
+        return { mode: chosen, text };
       }
-      if (el.closest(TEXT_FIELD)) return setMode("text");
-      if (el.closest(INTERACTIVE)) return setMode("link");
-      setMode("default");
+      if (el.closest(TEXT_FIELD)) return { mode: "text", text: "" };
+      if (el.closest(INTERACTIVE)) return { mode: "link", text: "" };
+      return { mode: "default", text: "" };
+    }
+
+    function settle(el: Element | null) {
+      const next = resolve(el);
+      const leavingLabel = (mode === "orbit" || mode === "scope") && next.mode !== "orbit" && next.mode !== "scope";
+      if (leavingLabel) {
+        // Hold the label across a gap between two labelled things
+        if (!leaveTimer) {
+          leaveTimer = window.setTimeout(() => {
+            leaveTimer = 0;
+            const again = resolve(document.elementFromPoint(target.x, target.y));
+            apply(again.mode, again.text);
+          }, LEAVE_DELAY);
+        }
+        return;
+      }
+      if (leaveTimer) {
+        window.clearTimeout(leaveTimer);
+        leaveTimer = 0;
+      }
+      apply(next.mode, next.text);
     }
 
     function releaseMagnet() {
@@ -95,15 +166,15 @@ export function Cursor() {
       }
 
       const el = event.target as Element | null;
+      settle(el);
 
       // Border light on glass cards
-      const nextLit = el?.closest?.<HTMLElement>(".lit") ?? null;
-      if (nextLit) {
-        const rect = nextLit.getBoundingClientRect();
-        nextLit.style.setProperty("--mx", `${event.clientX - rect.left}px`);
-        nextLit.style.setProperty("--my", `${event.clientY - rect.top}px`);
+      const lit = el?.closest?.<HTMLElement>(".lit") ?? null;
+      if (lit) {
+        const rect = lit.getBoundingClientRect();
+        lit.style.setProperty("--mx", `${event.clientX - rect.left}px`);
+        lit.style.setProperty("--my", `${event.clientY - rect.top}px`);
       }
-      lit = nextLit;
 
       // Magnetic controls
       const nextMagnet = el?.closest?.<HTMLElement>("[data-magnetic]") ?? null;
@@ -118,13 +189,23 @@ export function Cursor() {
       }
     }
 
-    function onOver(event: PointerEvent) {
-      if (event.pointerType !== "mouse") return;
-      resolveMode(event.target as Element);
+    // Scrolling moves things under a still pointer without any pointer event
+    let scrollQueued = false;
+    function onScroll() {
+      if (scrollQueued || !visible) return;
+      scrollQueued = true;
+      requestAnimationFrame(() => {
+        scrollQueued = false;
+        settle(document.elementFromPoint(target.x, target.y));
+      });
     }
 
     function onDown() {
       pressed = true;
+      // Ripple: restart the CSS animation
+      ring.classList.remove("is-pulse");
+      void ring.offsetWidth;
+      ring.classList.add("is-pulse");
     }
     function onUp() {
       pressed = false;
@@ -133,18 +214,18 @@ export function Cursor() {
       visible = false;
       ring.style.opacity = dot.style.opacity = "0";
       releaseMagnet();
-      if (lit) lit = null;
     }
 
     function tick() {
       // The dot is exact; the ring and the glow trail behind on springs.
       const dx = target.x - ringPos.x;
       const dy = target.y - ringPos.y;
-      ringPos.x += dx * 0.2;
-      ringPos.y += dy * 0.2;
+      const follow = FOLLOW[mode];
+      ringPos.x += dx * follow;
+      ringPos.y += dy * follow;
       glowPos.x += (target.x - glowPos.x) * 0.08;
       glowPos.y += (target.y - glowPos.y) * 0.08;
-      size += (sizeTarget * (pressed ? 0.82 : 1) - size) * 0.2;
+      size += (SIZE[mode] * (pressed ? 0.9 : 1) - size) * 0.22;
 
       const speed = Math.min(Math.hypot(dx, dy), 120);
       const stretch = mode === "default" ? Math.min(speed / 260, 0.32) : 0;
@@ -161,7 +242,7 @@ export function Cursor() {
     }
 
     window.addEventListener("pointermove", onMove, { passive: true });
-    document.addEventListener("pointerover", onOver, { passive: true });
+    window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("pointerdown", onDown, { passive: true });
     window.addEventListener("pointerup", onUp, { passive: true });
     document.documentElement.addEventListener("pointerleave", onLeave);
@@ -169,10 +250,11 @@ export function Cursor() {
 
     return () => {
       cancelAnimationFrame(frame);
+      window.clearTimeout(leaveTimer);
       releaseMagnet();
       root.classList.remove("has-cursor");
       window.removeEventListener("pointermove", onMove);
-      document.removeEventListener("pointerover", onOver);
+      window.removeEventListener("scroll", onScroll);
       window.removeEventListener("pointerdown", onDown);
       window.removeEventListener("pointerup", onUp);
       document.documentElement.removeEventListener("pointerleave", onLeave);
@@ -199,18 +281,37 @@ export function Cursor() {
         aria-hidden="true"
         className="pointer-events-none fixed inset-0 z-[300] hidden [@media(hover:hover)_and_(pointer:fine)]:block"
       >
-        <div
-          ref={ringRef}
-          data-mode="default"
-          className="cursor-ring fixed left-0 top-0 flex items-center justify-center rounded-full opacity-0"
-        >
-          <span ref={labelRef} className="cursor-label" />
+        <div ref={ringRef} data-mode="default" className="cursor-ring fixed left-0 top-0 rounded-full opacity-0">
+          {/* ORBIT: the caption runs around the edge */}
+          <svg className="cursor-orbit" viewBox="0 0 120 120" focusable="false">
+            <defs>
+              <path id="cursor-orbit-path" d="M60 60 m-47 0 a47 47 0 1 1 94 0 a47 47 0 1 1 -94 0" />
+            </defs>
+            <g className="cursor-orbit-spin">
+              <text>
+                <textPath ref={orbitTextRef} href="#cursor-orbit-path" lengthAdjust="spacing" />
+              </text>
+            </g>
+          </svg>
+          <span className="cursor-core">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M7 17 17 7M8 7h9v9" />
+            </svg>
+          </span>
+
+          {/* SCOPE: viewfinder brackets that slowly turn, with a tag below */}
+          <svg className="cursor-scope" viewBox="0 0 100 100" focusable="false">
+            <g className="cursor-scope-spin" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+              <path d="M10 30V14a4 4 0 0 1 4-4h16" />
+              <path d="M70 10h16a4 4 0 0 1 4 4v16" />
+              <path d="M90 70v16a4 4 0 0 1-4 4H70" />
+              <path d="M30 90H14a4 4 0 0 1-4-4V70" />
+            </g>
+            <circle className="cursor-scope-dash" cx="50" cy="50" r="27" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="2 6" />
+          </svg>
+          <span ref={tagRef} className="cursor-tag" />
         </div>
-        <div
-          ref={dotRef}
-          data-mode="default"
-          className="cursor-dot fixed left-0 top-0 h-1.5 w-1.5 rounded-full opacity-0"
-        />
+        <div ref={dotRef} data-mode="default" className="cursor-dot fixed left-0 top-0 h-1.5 w-1.5 rounded-full opacity-0" />
       </div>
     </>
   );

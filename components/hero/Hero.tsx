@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { motion } from "motion/react";
-import { ArrowRight, MapPin, Repeat } from "lucide-react";
+import { ArrowRight, Mail, MapPin, Repeat } from "lucide-react";
 import { SITE } from "@/lib/site";
 import { Attractor } from "./Attractor";
 import { CrackedWord } from "./CrackedWord";
@@ -10,16 +10,24 @@ import { LiveClock } from "./LiveClock";
 import { DecodeText } from "@/components/ui/DecodeText";
 import { TypedText } from "@/components/ui/TypedText";
 import { HandNote } from "@/components/ui/HandNote";
-import { Planet } from "@/components/scenery/Planet";
+import { Planet3D } from "@/components/scenery/Planet3D";
 import { GitHubIcon, DiscordIcon } from "@/components/ui/BrandIcons";
 import { useAmbientMotion } from "@/lib/ambient-motion";
 
 const LOOP = ["build", "break", "fix", "repeat"] as const;
 
+const SOCIALS = [
+  { href: `mailto:${SITE.email}`, label: "Email", Icon: Mail, external: false },
+  { href: SITE.links.github, label: "GitHub", Icon: GitHubIcon, external: true },
+  { href: SITE.links.discord, label: "Discord", Icon: DiscordIcon, external: true },
+] as const;
+
 /**
- * Hero — `$ whoami` types itself, the name decodes as its output, and the
- * Lorenz attractor runs on the right. One orchestrated entrance, then the page
- * stays still unless the visitor does something.
+ * Hero — `$ whoami` types itself, the name decodes as its output, the Lorenz
+ * attractor runs on the right and a 3D planet rises under it.
+ *
+ * Layout: a real two-column grid (no absolutely positioned blocks, which is
+ * what used to clip things at unusual sizes). The planet is scenery behind it.
  */
 export function Hero() {
   const ambient = useAmbientMotion();
@@ -53,20 +61,42 @@ export function Hero() {
   });
 
   return (
-    <section id="top" aria-label="Introduction" className="relative isolate min-h-[100svh] overflow-hidden pt-28 lg:pt-32">
-      {/* Scenery */}
+    <section
+      id="top"
+      aria-label="Introduction"
+      className="relative isolate min-h-[100svh] overflow-x-clip pb-[18svh] pt-28 sm:pb-[20svh] lg:pt-32"
+    >
+      {/* Scenery. overflow-x is clipped (no sideways scroll) but the planet may
+          spill downward into the next section, so there is no seam. */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
         <div
           className="absolute -right-[10%] top-[-10%] h-[70%] w-[70%]"
           style={{ background: "radial-gradient(closest-side, rgba(124,92,255,0.22), transparent)" }}
         />
-        <Planet arcs className="absolute -bottom-[46%] -right-[18%] w-[90vw] max-w-[1100px] opacity-90 sm:-bottom-[60%] lg:-bottom-[70%] lg:-right-[8%] lg:w-[62vw]" />
-        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-night" />
+        {/* Anchored to the page container, not the viewport, so on a huge screen the
+            planet stays next to the content instead of hugging the far edge.
+            --s is the canvas side. The sphere is 65% of it, centred, so its top
+            sits 0.175·s below the canvas top: place that point ~19svh above the
+            bottom of the hero and let the rest sink into the next section. */}
+        <div className="relative mx-auto h-full max-w-site">
+          <Planet3D
+            className="absolute [mask-image:linear-gradient(to_bottom,#000_58%,transparent_94%)]"
+            style={
+              {
+                "--s": "clamp(400px, 66vw, 900px)",
+                width: "var(--s)",
+                height: "var(--s)",
+                right: "calc(var(--s) * -0.2)",
+                top: "calc(100% - 19svh - var(--s) * 0.175)",
+              } as React.CSSProperties
+            }
+          />
+        </div>
       </div>
 
-      <div className="mx-auto grid max-w-[1240px] grid-cols-1 gap-6 px-5 sm:px-8 lg:grid-cols-[minmax(0,1.04fr)_minmax(0,1fr)] lg:gap-0">
+      <div className="pointer-events-none mx-auto grid max-w-site grid-cols-1 gap-8 px-5 sm:px-8 lg:grid-cols-[minmax(0,1.04fr)_minmax(0,1fr)] lg:items-center lg:gap-6">
         {/* Copy */}
-        <div className="relative z-10 flex flex-col pb-10 lg:pb-24 lg:pt-10">
+        <div className="pointer-events-auto relative z-10 flex flex-col pb-2 lg:py-8">
           <motion.p {...rise(0)} className="font-mono text-sm text-lilac">
             <TypedText text="$ whoami" delay={100} speed={55} />
           </motion.p>
@@ -75,14 +105,14 @@ export function Hero() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.2, delay: 0.55 }}
-            className="font-display mt-3 text-[clamp(4.2rem,12vw,9.5rem)] font-extrabold leading-[0.88] tracking-[-0.045em]"
+            className="font-display mt-3 text-[clamp(4rem,11.5vw,9rem)] font-extrabold leading-[0.88] tracking-[-0.045em]"
           >
             <DecodeText text={SITE.name} delay={550} duration={750} letterClassName="name-gradient" />
           </motion.h1>
 
           <motion.p
             {...focus(0.85)}
-            className="group font-display mt-6 text-[clamp(1.9rem,4.4vw,3.35rem)] font-bold leading-[1.04] tracking-[-0.03em] text-ink"
+            className="group font-display mt-6 text-[clamp(1.8rem,4.2vw,3.35rem)] font-bold leading-[1.04] tracking-[-0.03em] text-ink"
           >
             I build software
             <br />
@@ -108,16 +138,14 @@ export function Hero() {
           </motion.div>
 
           <motion.div {...rise(1.25)} className="mt-8 flex flex-wrap items-center gap-3">
-            {[
-              { href: SITE.links.github, label: "GitHub", Icon: GitHubIcon },
-              { href: SITE.links.discord, label: "Discord", Icon: DiscordIcon },
-            ].map(({ href, label, Icon }) => (
+            {SOCIALS.map(({ href, label, Icon, external }) => (
               <span key={label} data-magnetic="0.35" className="inline-block transition-transform duration-300 ease-[var(--ease-out)]">
                 <a
                   href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={`${label} (opens in a new tab)`}
+                  target={external ? "_blank" : undefined}
+                  rel={external ? "noopener noreferrer" : undefined}
+                  aria-label={external ? `${label} (opens in a new tab)` : `Send an email to ${SITE.email}`}
+                  title={external ? label : SITE.email}
                   className="glass flex h-12 w-12 items-center justify-center !rounded-2xl text-ink-2 transition-colors hover:text-ink"
                 >
                   <Icon size={19} />
@@ -147,50 +175,47 @@ export function Hero() {
           </motion.div>
         </div>
 
-        {/* Visual */}
+        {/* Visual: the attractor fits whatever box it is given (see Attractor) */}
         <motion.div
           initial={{ opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1.6, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-          className="relative h-[380px] sm:h-[460px] lg:absolute lg:right-[max(0px,calc((100vw-1240px)/2))] lg:top-[88px] lg:h-[calc(100%-200px)] lg:w-[min(52vw,700px)]"
+          className="pointer-events-auto relative h-[380px] sm:h-[460px] lg:h-[min(70svh,max(720px,30vw))]"
         >
-          {/* The canvas bleeds into the right margin so a wing is never clipped */}
-          <Attractor className="absolute inset-0 lg:-right-[14%]" onButterfly={onButterfly} onSplit={onSplit} />
+          <Attractor className="absolute inset-0" onButterfly={onButterfly} onSplit={onSplit} />
 
-          <div className="absolute right-[4%] top-[2%] hidden lg:block">
-          <HandNote arrow="down-left" rotate={-5} className="text-[1.35rem]">
-            {stage === "split" ? (
-              <>
-                see? same start,
-                <br />
-                different universe.
-              </>
-            ) : stage === "dropped" ? (
-              <>
-                two trails, one path…
-                <br />
-                for now. keep watching.
-              </>
-            ) : (
-              <>
-                click anywhere here —
-                <br />
-                tiny change, whole new path
-              </>
-            )}
-          </HandNote>
+          <div className="pointer-events-none absolute right-[2%] top-0 hidden lg:block">
+            <HandNote arrow="down-left" rotate={-5} className="text-[1.35rem]">
+              {stage === "split" ? (
+                <>
+                  see? same start,
+                  <br />
+                  different universe.
+                </>
+              ) : stage === "dropped" ? (
+                <>
+                  two trails, one path…
+                  <br />
+                  for now. keep watching.
+                </>
+              ) : (
+                <>
+                  click anywhere here —
+                  <br />
+                  tiny change, whole new path
+                </>
+              )}
+            </HandNote>
           </div>
 
-          <div className="glass lit absolute bottom-4 right-3 hidden w-[258px] p-4 sm:block lg:-bottom-2 lg:right-4">
+          <div className="glass lit absolute bottom-3 right-3 hidden w-[258px] p-4 sm:block lg:hidden xl:bottom-4 xl:block">
             <p className="flex items-center gap-2 font-mono text-[11px] text-ink-3">
               <Repeat size={12} aria-hidden="true" /> ~/mindset
             </p>
             <p className="mt-2 text-[15px] text-ink-2">
               {LOOP.map((word, i) => (
                 <span key={word}>
-                  <span className={`transition-colors duration-500 ${i === loopIndex ? "text-ink" : ""}`}>
-                    {word}
-                  </span>
+                  <span className={`transition-colors duration-500 ${i === loopIndex ? "text-ink" : ""}`}>{word}</span>
                   {i < LOOP.length - 1 && <span className="mx-1.5 text-ink-3">→</span>}
                 </span>
               ))}
@@ -202,7 +227,7 @@ export function Hero() {
       {/* Scroll cue */}
       <a
         href="#about"
-        className="absolute bottom-6 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 text-xs text-ink-3 transition-colors hover:text-ink-2 lg:flex"
+        className="absolute bottom-6 left-[max(2rem,calc(50%-var(--container-site)/2+2rem))] hidden flex-col items-center gap-2 text-xs text-ink-3 transition-colors hover:text-ink-2 lg:flex"
       >
         <span className="flex h-9 w-6 justify-center rounded-full border border-line-strong pt-2">
           <span className="h-1.5 w-1 rounded-full bg-lilac" style={{ animation: "scroll-dot 1.8s var(--ease-out) infinite" }} />

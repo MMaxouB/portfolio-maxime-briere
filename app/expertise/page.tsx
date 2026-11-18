@@ -24,7 +24,7 @@ export default function ExpertisePage() {
           style={{ background: "radial-gradient(closest-side, rgba(91,108,255,0.16), transparent)" }}
         />
       </div>
-      <div className="mx-auto max-w-[1120px] px-5 sm:px-8">
+      <div className="mx-auto max-w-site px-5 sm:px-8">
         <SectionHeader
           as="h1"
           path="~/toolbox --verbose"

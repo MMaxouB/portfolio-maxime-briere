@@ -22,7 +22,7 @@ export default function ProjectsPage() {
           style={{ background: "radial-gradient(closest-side, rgba(124,92,255,0.18), transparent)" }}
         />
       </div>
-      <div className="mx-auto max-w-[1240px] px-5 sm:px-8">
+      <div className="mx-auto max-w-site px-5 sm:px-8">
         <SectionHeader
           as="h1"
           path="~/projects --all"
