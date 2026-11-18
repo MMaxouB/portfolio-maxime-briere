@@ -25,8 +25,8 @@ export function ProjectCard({ project, headingLevel = "h3" }: ProjectCardProps) 
     // if the target itself rose on hover, its bottom edge would slide away from a
     // pointer resting there, un-hover, drop back, re-hover… and the cursor would flicker.
     <Link href={`/projects/${project.slug}`} data-cursor="Read the case study" className="group block h-full rounded-[22px]">
-      <div className="glass lit flex h-full flex-col overflow-hidden !rounded-[22px] transition-[transform,box-shadow,border-color] duration-500 ease-[var(--ease-out)] group-hover:-translate-y-1.5 group-hover:border-line-strong group-hover:shadow-[0_30px_80px_-30px_rgba(91,76,200,0.6)]">
-        <div className="relative aspect-[16/10] overflow-hidden border-b border-line">
+      <div className="glass-flat lit flex h-full flex-col overflow-hidden !rounded-[22px] transition-[transform,box-shadow,border-color] duration-500 ease-[var(--ease-out)] group-hover:-translate-y-1.5 group-hover:border-line-strong group-hover:shadow-[0_30px_80px_-30px_rgba(91,76,200,0.6)]">
+        <div className="relative aspect-[16/10] overflow-hidden border-b border-line [contain:paint]">
           {/* Morphs into the case study's hero visual on navigation */}
           <ViewTransition name={`visual-${project.slug}`}>
             <div className="absolute inset-0 transition-transform duration-700 ease-[var(--ease-out)] group-hover:scale-[1.04]">
@@ -34,17 +34,17 @@ export function ProjectCard({ project, headingLevel = "h3" }: ProjectCardProps) 
             </div>
           </ViewTransition>
           <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
-            <span className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-night/70 px-2.5 py-1 text-[11px] font-medium text-ink backdrop-blur-md">
+            <span className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-night/85 px-2.5 py-1 text-[11px] font-medium text-ink">
               {confidential && <Lock size={10} aria-hidden="true" />}
               {PRIVACY_LABELS[project.type]}
             </span>
             {project.status !== "completed" && (
-              <span className="rounded-full border border-white/10 bg-night/60 px-2.5 py-1 text-[11px] text-ink-2 backdrop-blur-md">
+              <span className="rounded-full border border-white/10 bg-night/80 px-2.5 py-1 text-[11px] text-ink-2">
                 {STATUS_LABELS[project.status]}
               </span>
             )}
           </div>
-          <span className="absolute right-3 top-3 rounded-full bg-night/60 px-2 py-1 font-mono text-[11px] text-ink-2 backdrop-blur-md">
+          <span className="absolute right-3 top-3 rounded-full bg-night/80 px-2 py-1 font-mono text-[11px] text-ink-2">
             {project.year}
           </span>
         </div>

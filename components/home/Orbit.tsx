@@ -17,8 +17,8 @@ const RINGS: Ring[] = [
 /**
  * The toolbox as a small solar system: two tilted rings of tools turning
  * around a sphere that carries the rule they serve. Real 3D (CSS
- * preserve-3d): tiles pass in front of and behind the sphere. Hovering the
- * stage stops it so a tile can be read.
+ * preserve-3d): tiles pass in front of and behind the sphere. It keeps turning
+ * under the pointer; each tile still names itself on hover.
  */
 export function Orbit() {
   return (

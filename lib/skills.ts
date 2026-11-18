@@ -112,7 +112,7 @@ export const SKILLS: Skill[] = [
     levelLabel: "Advanced",
     description: "Typed endpoints with an OpenAPI contract shared with the front end.",
     mark: { brand: "fastapi" },
-    projectSlugs: ["ai-video-editor", "studyai", "capsa"],
+    projectSlugs: ["ai-video-editor", "studyai", "confidential-platform"],
   },
   {
     slug: "software-architecture",
@@ -122,7 +122,7 @@ export const SKILLS: Skill[] = [
     levelLabel: "Proficient",
     description: "Clear boundaries, written before the code, and checked once the code exists.",
     mark: { glyph: "layers" },
-    projectSlugs: ["ai-video-editor", "workspace", "templates-web", "capsa"],
+    projectSlugs: ["ai-video-editor", "workspace", "templates-web", "confidential-platform"],
   },
   {
     slug: "postgresql",

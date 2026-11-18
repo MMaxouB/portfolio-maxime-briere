@@ -17,10 +17,19 @@ const HAND: CSSProperties = { fontFamily: "var(--font-kalam), cursive" };
 /** Server and browser can disagree on the 16th digit of Math.sin — round it away. */
 const r2 = (n: number) => Math.round(n * 100) / 100;
 
-/** `.mv` animation with a negative delay, so the paused frame is a good one. */
+/**
+ * `.mv` animation with a negative delay, so the paused frame is a good one.
+ * Longhands only: the `animation` shorthand also sets animation-play-state, and an
+ * inline style beats the `.mv { animation-play-state: paused }` rule — which used to
+ * leave every card on the page animating all the time, hover or not.
+ */
 function anim(name: string, duration: number, delay = 0, extra: CSSProperties = {}): CSSProperties {
   return {
-    animation: `${name} ${duration}s ${extra.animationTimingFunction ?? "linear"} ${-delay}s infinite`,
+    animationName: name,
+    animationDuration: `${duration}s`,
+    animationTimingFunction: "linear",
+    animationDelay: `${-delay}s`,
+    animationIterationCount: "infinite",
     transformBox: "fill-box",
     ...extra,
   };
@@ -452,7 +461,7 @@ function CipherVisual({ p }: { p: string }) {
   );
 }
 
-/** CAPSA (NDA): modules as redacted tiles — no names, only the state of the work. */
+/** Confidential platform (NDA): modules as redacted tiles — no names, only the state of the work. */
 function ModulesVisual({ p }: { p: string }) {
   // [state] done = solid, building = pulsing, planned = outline
   const tiles: ("done" | "building" | "planned")[] = ["done", "done", "building", "done", "building", "planned", "building", "planned"];

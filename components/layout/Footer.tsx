@@ -117,7 +117,7 @@ export function Footer() {
       </div>
 
       {/* The city that was on the horizon all along, with the bottom bar on the water */}
-      <div className="relative mt-6 h-[340px] sm:h-[440px]">
+      <div className="relative mt-6 h-[340px] [contain-intrinsic-size:auto_340px] [content-visibility:auto] sm:h-[440px] sm:[contain-intrinsic-size:auto_440px]">
         <Skyline className="absolute inset-0 h-full w-full" />
         <div aria-hidden="true" className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-night to-transparent" />
         <div className="absolute inset-x-0 bottom-5 mx-auto max-w-site px-5 sm:px-8">

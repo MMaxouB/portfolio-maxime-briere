@@ -59,12 +59,34 @@ void main(){
 }
 `;
 const PLANET_FRAG = /* glsl */ `
-uniform vec3 uLight; uniform vec3 uDeep; uniform vec3 uMid; uniform vec3 uAtmo;
+uniform vec3 uLight; uniform vec3 uDeep; uniform vec3 uMid; uniform vec3 uAtmo; uniform vec3 uLand;
 varying vec3 vObj; varying vec3 vN; varying vec3 vView;
+// A handful of small, simple continents: a centre on the sphere and an angular radius.
+const vec4 LAND[8] = vec4[8](
+  vec4( 0.62,  0.42,  0.66, 0.50),
+  vec4(-0.55,  0.30,  0.78, 0.42),
+  vec4( 0.10, -0.55,  0.83, 0.46),
+  vec4(-0.80, -0.30, -0.52, 0.36),
+  vec4( 0.78, -0.20, -0.59, 0.40),
+  vec4(-0.10,  0.80, -0.59, 0.30),
+  vec4( 0.20,  0.10, -0.97, 0.28),
+  vec4(-0.95,  0.12,  0.28, 0.26)
+);
 void main(){
   vec3 N = normalize(vN); vec3 V = normalize(vView); vec3 L = normalize(uLight);
+  vec3 p = normalize(vObj);
   float day = smoothstep(-0.2, 0.75, dot(N, L));
   vec3 col = mix(uDeep, uMid, day);
+  // Continents: soft-edged blobs, their coast wobbled a little so they are not perfect discs
+  float wob = sin(p.x * 9.0 + p.y * 7.0) * 0.05 + sin(p.y * 13.0 - p.z * 8.0) * 0.035;
+  float land = 0.0;
+  for (int i = 0; i < 8; i++) {
+    vec4 c = LAND[i];
+    float d = acos(clamp(dot(p, normalize(c.xyz)), -1.0, 1.0)) + wob;
+    land = max(land, smoothstep(c.w, c.w - 0.07, d));
+  }
+  vec3 ground = mix(uLand * 0.55, uLand, day);
+  col = mix(col, ground, land * 0.92);
   float rim = pow(1.0 - max(dot(N, V), 0.0), 3.0);
   col += uAtmo * rim * (0.3 + 0.9 * day);
   gl_FragColor = vec4(col, 1.0);
@@ -172,6 +194,7 @@ export default function PlanetScene({ onReady, onFail, onSelect }: PlanetScenePr
           uDeep: { value: new Color("#0c0930") },
           uMid: { value: new Color("#3a2d95") },
           uAtmo: { value: new Color("#8b6cff") },
+          uLand: { value: new Color("#8d79ff") },
         },
       })
     );

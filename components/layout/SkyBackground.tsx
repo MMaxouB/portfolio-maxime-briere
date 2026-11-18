@@ -72,7 +72,7 @@ export function SkyBackground() {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
       const rand = seeded(20260818);
-      const count = Math.round(Math.min(340, (width * height) / 5200));
+      const count = Math.round(Math.min(260, (width * height) / 6500));
       stars = Array.from({ length: count }, () => {
         const roll = rand();
         const layer: Star["layer"] = roll < 0.62 ? 0 : roll < 0.9 ? 1 : 2;
@@ -162,9 +162,9 @@ export function SkyBackground() {
     }
 
     function loop(now: number) {
-      // ~30 fps is plenty for a twinkle and keeps the GPU cool
+      // ~22 fps is plenty for a slow twinkle and keeps the GPU cool
       lantern.strength *= 0.985;
-      if (now - lastDraw > 32) {
+      if (now - lastDraw > 45) {
         draw(now);
         lastDraw = now;
       }

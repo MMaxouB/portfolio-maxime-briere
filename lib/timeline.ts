@@ -102,7 +102,7 @@ export const TIMELINE: TimelineEvent[] = [
     description:
       "ONDE, a music streaming prototype, and an internal platform taken over under NDA — now in active development. Plus a plugin, skills and memory built around my own AI assistant.",
     area: "software",
-    projectSlugs: ["onde", "capsa", "claude-optimisation"],
+    projectSlugs: ["onde", "confidential-platform", "claude-optimisation"],
   },
 ];
 

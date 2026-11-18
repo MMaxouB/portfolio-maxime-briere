@@ -241,8 +241,8 @@ const projects: Project[] = [
       "Flags and tokens stay out of this page on purpose: what I keep is the reasoning for each step.",
   },
   {
-    slug: "capsa",
-    title: "CAPSA",
+    slug: "confidential-platform",
+    title: "Confidential platform",
     shortDescription:
       "An internal web platform under NDA: taken over with no handover and now in active development — we are finishing every planned solution.",
     context:

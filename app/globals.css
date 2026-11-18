@@ -148,6 +148,16 @@ html.has-cursor [contenteditable="true"] {
     -webkit-backdrop-filter: blur(14px) saturate(130%);
   }
 
+  /* Same panel without the backdrop blur. A backdrop-filter re-blurs whatever is behind it
+     on every frame the sky canvas redraws; a grid of a dozen cards used that dozens of times
+     per frame. These panels sit on a nearly opaque tint, so the blur was not visible anyway. */
+  .glass-flat {
+    position: relative;
+    background: rgba(16, 12, 38, 0.82);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+  }
+
   .lit {
     --mx: 50%;
     --my: -200px;
@@ -770,12 +780,6 @@ html[data-motion="paused"] *::after {
 }
 .orbit-face {
   transform: rotateY(10deg) rotateX(-62deg);
-}
-.orbit-stage:hover .orbit-ring,
-.orbit-stage:hover .orbit-counter,
-.orbit-stage:focus-within .orbit-ring,
-.orbit-stage:focus-within .orbit-counter {
-  animation-play-state: paused;
 }
 
 .mv-beacon {
