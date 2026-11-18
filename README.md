@@ -9,16 +9,20 @@ The original brief lives in [`PORTFOLIO_SPEC.md`](./PORTFOLIO_SPEC.md) (French).
 
 ## Run it locally
 
-Needs **Node.js 20.9+**.
+Needs **Node.js 20.9+** (https://nodejs.org). Works on Windows, macOS and Linux.
 
 ```bash
-./scripts/local.sh          # dev server, hot reload → http://localhost:3000
-./scripts/local.sh prod     # production build, then serve it
-./scripts/local.sh check    # lint + typecheck + tests + build
-./scripts/local.sh dev 4000 # any mode on another port
+npm run local            # dev server, hot reload → http://localhost:3000
+npm run local -- prod    # production build, then serve it
+npm run local -- check   # lint + typecheck + tests + build
+npm run local -- dev 4000  # any mode on another port
 ```
 
-The script installs dependencies on first run. Plain npm works too:
+**Windows:** open PowerShell or cmd in the project folder and run the same
+commands, or double-click `scripts\local.cmd`. No bash, Git Bash or WSL needed.
+`scripts/local.sh` is only a thin wrapper for Linux/macOS habits.
+
+The launcher installs dependencies on first run. Plain npm works too:
 
 ```bash
 npm ci
@@ -101,7 +105,7 @@ components/   hero/ home/ projects/ scenery/ cursor/ layout/ ui/
 lib/          typed content + helpers (projects, skills, timeline, site, …)
 providers/    AppProviders — palette/terminal state, ⌘K, MotionConfig
 assets/fonts/ static TTF for the OG renderer (OFL)
-scripts/      local.sh
+scripts/      local.mjs (launcher), local.cmd / local.sh (wrappers), test.mjs
 tests/        node --test (search ranking, commands, terminal, data integrity)
 ```
 

@@ -9,8 +9,9 @@
     "preview": "next build && next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "node --import tsx --test tests/*.test.ts",
-    "check": "npm run lint && npm run typecheck && npm test && npm run build"
+    "test": "node scripts/test.mjs",
+    "check": "npm run lint && npm run typecheck && npm test && npm run build",
+    "local": "node scripts/local.mjs"
   },
   "dependencies": {
     "lucide-react": "^1.32.0",
