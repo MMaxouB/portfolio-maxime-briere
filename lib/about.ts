@@ -1,49 +1,63 @@
 /**
- * About page copy (PORTFOLIO_SPEC §11).
+ * About copy (home "about" section and /about). Kept as data so wording can
+ * change without touching layout.
  *
- * Kept as data so the wording can be edited without touching layout. The spec
- * is explicit: professional identity, short blocks, no autobiography.
- *
- * ⚠️ Texte dérivé des données existantes (skills / timeline / projects).
- *    À relire et ajuster — c'est ta voix, pas la mienne.
+ * ⚠️ Written for you from your Notion sheets and preferences — re-read it,
+ *    it is your voice, not mine. The quote especially.
  */
 
 export interface AboutBlock {
-  /** Small uppercase eyebrow */
   label: string;
   title: string;
   body: string;
-  /** Optional short list rendered as a compact column */
   points?: string[];
 }
 
 export const ABOUT_INTRO =
-  "I build backend systems, automation pipelines and AI tools — and I always think about how they could break.";
+  "I'm Maxime, a developer and security student based in France. I build backend systems, automation pipelines and AI tools, mostly in Python and TypeScript. Security is my second language: it shapes how I write everything else.";
+
+export const ABOUT_QUOTE = "Make it work. Then make it hard to break.";
+
+export const ABOUT_FACTS = [
+  { icon: "terminal", title: "Kali Linux, every day", caption: "My main machine" },
+  { icon: "pin", title: "France", caption: "Based in, CET" },
+  { icon: "flag", title: "HackTheBox & TryHackMe", caption: "Where I practise" },
+] as const;
+
+/** "What I work on" — the ref's "What I enjoy" list, made concrete. */
+export const ABOUT_FOCUS = [
+  { icon: "server", label: "Backend & APIs", note: "FastAPI, job queues, contracts" },
+  { icon: "bot", label: "AI agents & automation", note: "fan-out, scoring, pipelines" },
+  { icon: "shield", label: "Web security & CTFs", note: "HTB boot2root, OWASP" },
+  { icon: "binary", label: "Reverse engineering", note: "CTF binaries, patience" },
+  { icon: "orbit", label: "Chaos & simulations", note: "pendulums, attractors, Python" },
+  { icon: "key", label: "Cryptography", note: "Caesar → AES, by hand" },
+] as const;
 
 export const ABOUT_BLOCKS: AboutBlock[] = [
   {
     label: "Current focus",
-    title: "Backend architecture for AI-heavy products",
-    body: "Most of my work happens behind the interface. I build services that connect AI models, manage long background jobs, and stay reliable under heavy load — using Python, TypeScript, FastAPI, Next.js, PostgreSQL and Docker.",
+    title: "Backends for AI-heavy products",
+    body: "Most of my work happens behind the interface: services that wrap AI models, run long background jobs and keep their promises under load. Right now that means a video editor's FastAPI backend, its job queue and its billing.",
   },
   {
     label: "What I build",
     title: "Systems that hold up outside the demo",
-    body: "Multi-agent systems, background processing pipelines, workflow automation and internal tools. I care most about the parts that only show up in production: retries, failures, cost and monitoring.",
+    body: "Agent pipelines, workflow bots, internal tools and the measuring tools around them. I care most about what only shows up in production: retries, failures, cost and monitoring.",
     points: [
-      "Small, separate services instead of one big system that grows out of control",
-      "Clear data models before clever abstractions",
-      "Security planned from the start, not added later",
+      "Write the architecture down before the code",
+      "Measure it instead of believing it",
+      "Plan security from the start, then attack it yourself",
     ],
   },
   {
     label: "Security",
     title: "A specialisation, not the whole identity",
-    body: "Penetration testing, the OWASP Top 10, Active Directory enumeration and Linux privilege escalation. I practise these skills on CTF platforms, and I have used them in one real engagement under NDA. Security shapes how I write software — it does not replace it.",
+    body: "HackTheBox boot2root machines, web and reversing challenges, ciphers rebuilt by hand. On my own product I ran the security milestone: 29 findings, every one fixed with a test.",
   },
   {
     label: "What I am learning",
     title: "Depth over breadth",
-    body: "The fundamentals of distributed systems, Go for concurrent tools, and the practical side of running AI workloads: evaluation, cost control and handling failures.",
+    body: "Distributed systems fundamentals, running AI workloads for real — evaluation, cost, failure — and reading binaries faster.",
   },
 ];

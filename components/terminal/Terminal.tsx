@@ -270,7 +270,7 @@ export function Terminal() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
             onClick={closeTerminal}
-            className="fixed inset-0 z-[100] bg-bg-primary/70 backdrop-blur-sm"
+            className="fixed inset-0 z-[100] bg-night/70 backdrop-blur-md"
             aria-hidden="true"
           />
 
@@ -286,17 +286,22 @@ export function Terminal() {
             animate="visible"
             exit="exit"
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-x-4 bottom-8 z-[101] mx-auto max-w-2xl overflow-hidden rounded-xl border border-border-subtle bg-bg-primary font-mono text-sm shadow-2xl"
+            className="fixed inset-x-4 bottom-8 z-[101] mx-auto max-w-2xl overflow-hidden rounded-[20px] border border-line-strong bg-[#08061a]/95 font-mono text-sm shadow-[0_40px_120px_-30px_rgba(91,76,200,0.75)] backdrop-blur-2xl"
           >
             {/* Title bar */}
-            <div className="flex items-center gap-3 border-b border-border-subtle bg-surface px-4 py-3">
-              <TerminalIcon size={14} className="text-accent" aria-hidden="true" />
-              <span className="flex-1 text-xs text-text-muted">
+            <div className="flex items-center gap-3 border-b border-line bg-deep/80 px-4 py-3">
+              <span aria-hidden="true" className="flex gap-1.5">
+                <span className="h-2.5 w-2.5 rounded-full bg-[#3a3460]" />
+                <span className="h-2.5 w-2.5 rounded-full bg-[#3a3460]" />
+                <span className="h-2.5 w-2.5 rounded-full bg-[#3a3460]" />
+              </span>
+              <TerminalIcon size={14} className="text-lilac" aria-hidden="true" />
+              <span className="flex-1 text-xs text-ink-3">
                 maxime@portfolio ~ $
               </span>
               <button
                 onClick={closeTerminal}
-                className="rounded p-1 text-text-muted transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                className="rounded-full p-1 text-ink-3 transition-colors hover:text-ink"
                 aria-label="Close terminal"
               >
                 <X size={13} aria-hidden="true" />
@@ -307,7 +312,7 @@ export function Terminal() {
             <div
               ref={outputRef}
               onClick={handleTranscriptClick}
-              className="flex h-64 flex-col gap-1 overflow-y-auto overscroll-contain p-4"
+              className="flex h-72 flex-col gap-1 overflow-y-auto overscroll-contain p-4"
               aria-live="polite"
               aria-atomic="false"
             >
@@ -322,15 +327,15 @@ export function Terminal() {
                         key={index}
                         className={
                           line.kind === "input"
-                            ? "text-text-primary"
+                            ? "text-ink"
                             : line.kind === "error"
-                            ? "text-red-400"
-                            : "whitespace-pre-wrap text-text-secondary"
+                            ? "text-[#ffb3cb]"
+                            : "whitespace-pre-wrap text-ink-2"
                         }
                       >
                         {line.kind === "input" ? (
                           <>
-                            <span className="mr-2 text-accent">$</span>
+                            <span className="mr-2 text-lilac">$</span>
                             {text}
                           </>
                         ) : (
@@ -346,9 +351,9 @@ export function Terminal() {
             {/* Prompt */}
             <form
               onSubmit={handleSubmit}
-              className="flex items-center gap-2 border-t border-border-subtle px-4 py-3"
+              className="flex items-center gap-2 border-t border-line px-4 py-3"
             >
-              <span className="select-none text-accent" aria-hidden="true">
+              <span className="select-none text-lilac" aria-hidden="true">
                 $
               </span>
               <input
@@ -358,7 +363,7 @@ export function Terminal() {
                   dispatch({ type: "SET_INPUT", value: event.target.value })
                 }
                 onKeyDown={handleKeyDown}
-                className="flex-1 bg-transparent text-base text-text-primary caret-accent outline-none placeholder:text-text-muted md:text-sm"
+                className="flex-1 bg-transparent text-base text-ink caret-lilac outline-none placeholder:text-ink-3 focus-visible:outline-none md:text-sm"
                 placeholder="type a command…"
                 autoCapitalize="off"
                 autoComplete="off"

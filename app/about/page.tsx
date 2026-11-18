@@ -1,127 +1,89 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
-import { ABOUT_BLOCKS, ABOUT_INTRO } from "@/lib/about";
+import { ArrowRight, Check } from "lucide-react";
+import { ABOUT_BLOCKS, ABOUT_INTRO, ABOUT_QUOTE } from "@/lib/about";
 import { TIMELINE } from "@/lib/timeline";
-import { SITE } from "@/lib/site";
-import { Timeline } from "@/components/timeline/Timeline";
-import { Button } from "@/components/ui/Button";
-import { SectionHeading } from "@/components/ui/SectionHeading";
+import { SectionHeader, Em } from "@/components/ui/SectionHeader";
 import { Reveal } from "@/components/ui/Reveal";
-import { Plate } from "@/components/ui/Plate";
 
 export const metadata: Metadata = {
   title: "About",
-  description: `${SITE.name} — ${SITE.role}. Professional identity, current focus and what I build.`,
+  description: "Who Maxime is as an engineer: what he builds, how security shapes it, and what he is learning now.",
+  alternates: { canonical: "/about" },
 };
 
-/** The four most recent milestones — the full record lives on /timeline. */
-const SELECTED_TIMELINE = TIMELINE.slice(-4).reverse();
-
 export default function AboutPage() {
+  const recent = TIMELINE.slice(-4).reverse();
+
   return (
-    <div className="container mx-auto min-h-screen max-w-3xl px-6 py-24">
-      {/* Introduction */}
-      <SectionHeading
-        as="h1"
-        index="06"
-        label="About"
-        title={SITE.name}
-        annotation={SITE.role}
-        className="mb-12"
-      />
-      <p className="mb-24 max-w-2xl text-xl leading-relaxed text-text-secondary">
-        {ABOUT_INTRO}
-      </p>
-
-      {/* Blocks */}
-      <div className="flex flex-col gap-16">
-        {ABOUT_BLOCKS.map((block, i) => (
-          <Reveal key={block.label} delay={i * 0.05}>
-            <section
-              aria-labelledby={`about-${i}`}
-              className="grid gap-5 md:grid-cols-[140px_1fr] md:gap-10"
-            >
-              <div className="flex items-baseline gap-3 md:flex-col md:gap-2">
-                <span className="title-block text-accent tabular-nums">
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                <span className="title-block">{block.label}</span>
-              </div>
-
-              <div className="min-w-0">
-                <h2
-                  id={`about-${i}`}
-                  className="text-2xl font-bold leading-snug tracking-[-0.02em] text-text-primary"
-                >
-                  {block.title}
-                </h2>
-                <p className="mt-4 leading-relaxed text-text-secondary">
-                  {block.body}
-                </p>
-
-                {block.points && (
-                  <ul className="mt-6 flex flex-col gap-4">
-                    {block.points.map((point) => (
-                      <li
-                        key={point}
-                        className="flex gap-4 leading-relaxed text-text-secondary"
-                      >
-                        <span
-                          className="mt-3 h-px w-4 shrink-0 bg-accent-dim"
-                          aria-hidden="true"
-                        />
-                        <span>{point}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </section>
-          </Reveal>
-        ))}
+    <div className="relative isolate overflow-hidden pb-24 pt-32 sm:pt-40">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
+        <div
+          className="absolute -left-[10%] top-0 h-[60%] w-[60%]"
+          style={{ background: "radial-gradient(closest-side, rgba(124,92,255,0.16), transparent)" }}
+        />
       </div>
+      <div className="mx-auto max-w-[1000px] px-5 sm:px-8">
+        <SectionHeader as="h1" path="~/about --long" lines={["Builder first,", <Em key="em">breaker second.</Em>]} description={ABOUT_INTRO} />
 
-      {/* Selected timeline */}
-      <section className="mt-20" aria-labelledby="about-timeline">
-        <div className="mb-10 flex items-center gap-4">
-          <h2 id="about-timeline" className="title-block">
-            Selected timeline
-          </h2>
-          <span className="h-px flex-1 bg-border-subtle" aria-hidden="true" />
-          <Link
-            href="/timeline"
-            className="group/link flex shrink-0 items-center gap-3 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-          >
-            <span className="title-block text-text-primary">Full timeline</span>
-            <span
-              aria-hidden="true"
-              className="h-px w-5 bg-accent-dim transition-all duration-500 ease-out group-hover/link:w-10 group-hover/link:bg-accent"
-            />
+        <Reveal delay={0.2}>
+          <p className="font-hand mt-10 text-[1.9rem] leading-snug text-ink/90" style={{ transform: "rotate(-1.2deg)" }}>
+            “{ABOUT_QUOTE}”
+          </p>
+        </Reveal>
+
+        <div className="mt-16 grid grid-cols-1 gap-4 md:grid-cols-2">
+          {ABOUT_BLOCKS.map((block, i) => (
+            <Reveal key={block.title} delay={i * 0.06} className="glass lit p-6 sm:p-7">
+              <p className="font-mono text-xs text-lilac">{block.label}</p>
+              <h2 className="font-display mt-3 text-[1.5rem] font-bold leading-tight tracking-[-0.025em] text-ink">{block.title}</h2>
+              <p className="mt-3 text-[15px] leading-relaxed text-ink-2">{block.body}</p>
+              {block.points && (
+                <ul className="mt-4 flex flex-col gap-2">
+                  {block.points.map((point) => (
+                    <li key={point} className="flex gap-2.5 text-[14.5px] text-ink-2">
+                      <Check size={16} className="mt-0.5 shrink-0 text-lilac" aria-hidden="true" />
+                      {point}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Reveal>
+          ))}
+        </div>
+
+        <section aria-labelledby="recent-title" className="mt-20">
+          <div className="flex items-end justify-between gap-4">
+            <h2 id="recent-title" className="font-display text-[1.9rem] font-bold tracking-[-0.03em] text-ink">
+              Lately
+            </h2>
+            <Link href="/timeline" className="inline-flex items-center gap-1.5 text-sm text-lilac hover:text-ink">
+              Full timeline <ArrowRight size={15} aria-hidden="true" />
+            </Link>
+          </div>
+          <ol className="mt-6 flex flex-col">
+            {recent.map((event) => (
+              <li key={event.title} className="grid grid-cols-[5.5rem_minmax(0,1fr)] gap-4 border-t border-line py-5">
+                <span className="font-mono text-sm text-ink-3">
+                  {event.month ? `${event.month} ` : ""}
+                  {event.year}
+                </span>
+                <div>
+                  <h3 className="text-[16px] font-semibold text-ink">{event.title}</h3>
+                  <p className="mt-1 text-[14.5px] leading-relaxed text-ink-2">{event.description}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <div className="glass mt-16 flex flex-col items-start justify-between gap-5 p-7 sm:flex-row sm:items-center" style={{ background: "linear-gradient(120deg, rgba(91,76,200,0.32), rgba(19,15,42,0.6))" }}>
+          <p className="font-display text-[1.6rem] font-bold leading-tight tracking-[-0.02em] text-ink">Something to build, or to break?</p>
+          <Link href="/contact" className="btn-primary shrink-0">
+            Get in touch <ArrowRight size={16} aria-hidden="true" />
           </Link>
         </div>
-        <Timeline events={SELECTED_TIMELINE} />
-      </section>
-
-      {/* Contact */}
-      <Plate className="mt-20 p-8" aria-labelledby="about-contact" role="region">
-        <h2
-          id="about-contact"
-          className="mb-3 text-2xl font-bold tracking-tight text-text-primary"
-        >
-          Let&apos;s build something.
-        </h2>
-        <p className="mb-6 leading-relaxed text-text-secondary">
-          Open to engineering work, security engagements, and interesting
-          problems with no clear answer yet.
-        </p>
-        <Link href="/contact" className="inline-block">
-          <Button variant="primary">
-            Get in touch
-            <ArrowRight size={16} className="ml-2" aria-hidden="true" />
-          </Button>
-        </Link>
-      </Plate>
+      </div>
     </div>
   );
 }

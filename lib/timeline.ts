@@ -1,5 +1,7 @@
 export interface TimelineEvent {
   year: string;
+  /** Optional finer date, shown next to the year ("Aug") */
+  month?: string;
   title: string;
   description: string;
   area: "software" | "security" | "ai" | "learning";
@@ -7,75 +9,100 @@ export interface TimelineEvent {
   technologies?: string[];
 }
 
+/** Oldest first. Dates come from the project sheets in Notion. */
 export const TIMELINE: TimelineEvent[] = [
   {
     year: "2024",
-    title: "First Python projects & scripting",
+    title: "First Python projects",
     description:
-      "Wrote my first real automation scripts: file processors, API wrappers and CLI tools. Python became my main language.",
+      "First real scripts: file processors, API wrappers, small CLI tools. Python became the main language.",
     area: "learning",
-    technologies: ["Python", "Bash"],
+    technologies: ["Python"],
   },
   {
     year: "2024",
     title: "Linux as a daily driver",
     description:
-      "Started using Linux full-time. Learned process management, shell scripting, permissions and system internals through daily use.",
-    area: "security",
+      "Moved to Linux full-time — today Kali. Permissions, processes and shell scripting, learned by living in them.",
+    area: "learning",
     technologies: ["Linux", "Bash"],
   },
   {
-    year: "2024",
-    title: "Personal tooling — Vulnerability Scanner",
+    year: "2025",
+    title: "CTFs and web security",
     description:
-      "Built a lightweight, distributed port scanner to learn Go concurrency and network basics.",
+      "HackTheBox and TryHackMe: OWASP Top 10, authentication flaws, privilege escalation, then reversing.",
     area: "security",
-    technologies: ["Go", "Bash"],
+    projectSlugs: ["ctf-labs"],
+    technologies: ["Burp Suite", "Nmap", "Metasploit"],
   },
   {
     year: "2025",
-    title: "CTFs and web security fundamentals",
+    month: "Dec",
+    title: "Ciphers by hand",
     description:
-      "Took part in several Capture the Flag events. Learned more about the OWASP Top 10, authentication flaws and privilege escalation.",
+      "Re-implemented ciphers from Caesar to AES, and a prime-number generator with multiprocessing and a segmented sieve.",
     area: "security",
-    projectSlugs: ["ctf-penetration-labs"],
-    technologies: ["Burp Suite", "Nmap", "Linux"],
-  },
-  {
-    year: "2025",
-    title: "Web development with TypeScript",
-    description:
-      "Moved into full-stack web development. Started using TypeScript and Next.js. Built the Obsidian workflow automation system, my first production-grade Node project.",
-    area: "software",
-    projectSlugs: ["obsidian-system"],
-    technologies: ["TypeScript", "Next.js", "Discord.js"],
-  },
-  {
-    year: "2025",
-    title: "Network security & penetration testing",
-    description:
-      "Participated in HackTheBox and TryHackMe labs. Learned to enumerate Active Directory, exploit web vulnerabilities and escalate privileges.",
-    area: "security",
-    projectSlugs: ["ctf-penetration-labs"],
-    technologies: ["Metasploit", "Active Directory", "Nmap"],
+    projectSlugs: ["crypto-python"],
+    technologies: ["Python"],
   },
   {
     year: "2026",
-    title: "AI agent systems & orchestration",
+    month: "Feb",
+    title: "FUTUR — a scanner MVP",
     description:
-      "Built a multi-agent routing system that sends tasks to several LLM agents in parallel and picks the best result. My first real project combining systems design and AI.",
+      "A defensive web security scanner with its legal framework and risk model written before the code.",
+    area: "security",
+    projectSlugs: ["futur"],
+    technologies: ["Python", "Flask", "Docker"],
+  },
+  {
+    year: "2026",
+    month: "Jul",
+    title: "One question, several AIs",
+    description:
+      "An experiment in Node.js: send one question to several AI assistants, score the answers and keep the best.",
     area: "ai",
     projectSlugs: ["agent-orchestrator"],
-    technologies: ["Python", "LangChain", "Redis", "Docker"],
+    technologies: ["Node.js", "JSON Schema"],
   },
   {
     year: "2026",
-    title: "Software architecture & SaaS development",
+    month: "Aug",
+    title: "Co-owner of an AI video editor",
     description:
-      "Taking on lead engineering roles in SaaS products. Designing microservice backends, async pipelines and AI-powered media workflows.",
+      "Architecture first, then the build: a WebGL compositor, a timeline editor, three AI tools, billing and a security milestone.",
     area: "software",
     projectSlugs: ["ai-video-editor"],
-    technologies: ["TypeScript", "Next.js", "Python", "FastAPI", "PostgreSQL"],
+    technologies: ["Next.js", "FastAPI", "PostgreSQL", "WebGL2"],
+  },
+  {
+    year: "2026",
+    month: "Aug",
+    title: "A month of systems",
+    description:
+      "The first workspace (an Obsidian vault run from Discord, 393 tests), StudyAI, the PRISME workbench, a template catalogue and this portfolio's first version.",
+    area: "software",
+    projectSlugs: ["workspace", "studyai", "prisme", "templates-web"],
+    technologies: ["Python", "TypeScript", "JavaScript"],
+  },
+  {
+    year: "2026",
+    month: "Oct",
+    title: "Breaking my own product",
+    description:
+      "The video editor's security review: 29 findings, 2 critical, all fixed with a test. CI green on all eight jobs.",
+    area: "security",
+    projectSlugs: ["ai-video-editor"],
+  },
+  {
+    year: "2026",
+    month: "Nov",
+    title: "Client work",
+    description:
+      "ONDE, a music streaming prototype, and an internal platform taken over under NDA — now in active development. Plus a plugin, skills and memory built around my own AI assistant.",
+    area: "software",
+    projectSlugs: ["onde", "confidential-platform", "claude-optimisation"],
   },
 ];
 
@@ -86,22 +113,17 @@ export const AREA_LABELS: Record<TimelineEvent["area"], string> = {
   learning: "Learning",
 };
 
-/**
- * §1.2 forbids a rainbow system, so areas are not distinguished by hue. They
- * are distinguished by mark: a filled square, a hollow square, a rule, a dot —
- * all drawn in the one ink colour. Legible in greyscale, and it keeps the
- * palette to a single family.
- */
+/** One hue family (§1.2): areas differ by mark shape, not colour. */
 export const AREA_MARKS: Record<TimelineEvent["area"], string> = {
-  software: "bg-accent",
-  security: "border border-accent bg-transparent",
-  ai: "bg-accent-dim",
-  learning: "border border-border-hover bg-transparent",
+  software: "bg-violet",
+  security: "border border-violet bg-transparent",
+  ai: "bg-lilac",
+  learning: "border border-line-strong bg-transparent",
 };
 
 export const AREA_TEXT_COLORS: Record<TimelineEvent["area"], string> = {
-  software: "text-accent",
-  security: "text-accent",
-  ai: "text-text-secondary",
-  learning: "text-text-muted",
+  software: "text-lilac",
+  security: "text-lilac",
+  ai: "text-ink-2",
+  learning: "text-ink-3",
 };

@@ -2,109 +2,149 @@
 
 import { useCallback, useRef, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
-import { Menu, X } from "lucide-react";
-import { MAIN_NAV, SOCIAL_NAV } from "@/lib/navigation";
-import { Button } from "@/components/ui/Button";
+import { ArrowRight, Menu, Search, SquareTerminal, X } from "lucide-react";
+import { DEEP_PAGES, HOME_SECTIONS, SOCIAL_NAV } from "@/lib/navigation";
+import { PageIcon } from "./PageIcon";
 import { useDialog } from "@/lib/useDialog";
+import { useApp } from "@/providers/AppProviders";
+import { MotionToggle } from "./MotionToggle";
+
 
 export function MobileMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
-  const shouldReduceMotion = useReducedMotion();
+  const reduce = useReducedMotion();
+  const pathname = usePathname();
+  const { openPalette, openTerminal } = useApp();
 
   const close = useCallback(() => setIsOpen(false), []);
   // Same chrome as the palette and the terminal: scroll lock, focus trap, Escape.
   useDialog(isOpen, panelRef, close);
 
+  const anchor = (id: string) => (pathname === "/" ? `#${id}` : `/#${id}`);
+
   return (
-    <div className="md:hidden">
+    <div className="lg:hidden">
       <button
+        type="button"
         onClick={() => setIsOpen(true)}
         aria-expanded={isOpen}
-        className="-mr-2 rounded-md p-2 text-text-secondary transition-colors hover:text-text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        className="glass flex h-10 w-10 items-center justify-center !rounded-full text-ink-2 transition-colors hover:text-ink"
         aria-label="Open menu"
       >
-        <Menu size={20} aria-hidden="true" />
+        <Menu size={18} aria-hidden="true" />
       </button>
 
       <AnimatePresence>
         {isOpen && (
           <>
-            {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={close}
-              className="fixed inset-0 z-50 bg-bg-primary/80 backdrop-blur-sm"
+              className="fixed inset-0 z-50 bg-night/70 backdrop-blur-sm"
               aria-hidden="true"
             />
 
-            {/* Menu Panel */}
             <motion.div
               ref={panelRef}
               role="dialog"
               aria-modal="true"
               aria-label="Menu"
-              initial={{ x: shouldReduceMotion ? 0 : "100%", opacity: shouldReduceMotion ? 0 : 1 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: shouldReduceMotion ? 0 : "100%", opacity: shouldReduceMotion ? 0 : 1 }}
-              transition={{ type: "spring", bounce: 0, duration: 0.4 }}
-              className="fixed inset-y-0 right-0 z-50 flex w-full max-w-sm flex-col border-l border-border-subtle bg-surface p-6 shadow-xl"
+              initial={reduce ? { opacity: 0 } : { x: "100%" }}
+              animate={reduce ? { opacity: 1 } : { x: 0 }}
+              exit={reduce ? { opacity: 0 } : { x: "100%" }}
+              transition={{ type: "spring", bounce: 0, duration: 0.45 }}
+              className="fixed inset-y-0 right-0 z-50 flex w-full max-w-sm flex-col overflow-y-auto border-l border-line bg-deep/95 p-6 backdrop-blur-xl"
             >
               <div className="mb-8 flex items-center justify-between">
-                <span className="text-sm font-semibold tracking-wide text-text-primary">
-                  MENU
-                </span>
+                <span className="font-mono text-sm text-lilac">~/menu</span>
                 <button
+                  type="button"
                   onClick={close}
-                  className="-mr-2 rounded-md p-2 text-text-secondary transition-colors hover:text-text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-line-strong text-ink-2 transition-colors hover:text-ink"
                   aria-label="Close menu"
                 >
-                  <X size={20} aria-hidden="true" />
+                  <X size={18} aria-hidden="true" />
                 </button>
               </div>
 
-              <nav className="flex flex-col gap-4">
-                {MAIN_NAV.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={close}
-                    className="block border-b border-border-subtle/50 py-2 text-lg font-medium text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              <nav aria-label="Mobile" className="flex flex-col">
+                {HOME_SECTIONS.map((item, i) => (
+                  <motion.div
+                    key={item.id}
+                    initial={reduce ? false : { opacity: 0, x: 24 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.08 + i * 0.05, duration: 0.4 }}
                   >
-                    {item.label}
-                  </Link>
+                    <Link
+                      href={anchor(item.id)}
+                      onClick={close}
+                      className="font-display flex items-center justify-between border-b border-line py-3.5 text-[1.7rem] font-bold tracking-[-0.02em] text-ink transition-colors hover:text-lilac"
+                    >
+                      {item.label}
+                      <ArrowRight size={18} className="text-ink-3" aria-hidden="true" />
+                    </Link>
+                  </motion.div>
                 ))}
-                <Link
-                  href="/cyber"
-                  onClick={close}
-                  className="block border-b border-border-subtle/50 py-2 text-lg font-medium text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-                >
-                  Cyber / Lab
-                </Link>
+                <p className="mt-7 font-mono text-xs text-ink-3">~/pages</p>
+                <ul className="mt-2 flex flex-col">
+                  {DEEP_PAGES.map((page) => (
+                    <li key={page.href}>
+                      <Link href={page.href} onClick={close} className="flex items-center gap-3.5 rounded-2xl px-1 py-2.5 transition-colors hover:bg-violet/10">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-line-strong text-lilac">
+                          <PageIcon name={page.icon} />
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block text-[15px] font-semibold text-ink">{page.label}</span>
+                          <span className="block text-[12.5px] leading-snug text-ink-3">{page.blurb}</span>
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
               </nav>
 
-              <div className="mt-auto flex flex-col gap-6 pt-8">
-                <div className="flex gap-4">
+              <div className="mt-auto flex flex-col gap-4 pt-8">
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      close();
+                      openPalette();
+                    }}
+                    className="pill flex-1 justify-center px-3 py-2.5 text-sm"
+                  >
+                    <Search size={15} aria-hidden="true" /> Search
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      close();
+                      openTerminal();
+                    }}
+                    className="pill flex-1 justify-center px-3 py-2.5 text-sm"
+                  >
+                    <SquareTerminal size={15} aria-hidden="true" /> Terminal
+                  </button>
+                </div>
+                <div className="flex items-center gap-5 text-sm text-ink-3">
+                  <MotionToggle />
                   {SOCIAL_NAV.map((item) => (
                     <a
-                      key={item.href}
+                      key={item.label}
                       href={item.href}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="rounded font-mono text-xs text-text-muted transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                      target={item.href.startsWith("http") ? "_blank" : undefined}
+                      rel="noopener noreferrer"
+                      className="transition-colors hover:text-ink"
                     >
                       {item.label}
                     </a>
                   ))}
                 </div>
-                <Link href="/contact" onClick={close} className="block">
-                  <Button variant="primary" className="w-full">
-                    Let&apos;s build something.
-                  </Button>
-                </Link>
               </div>
             </motion.div>
           </>

@@ -70,8 +70,23 @@ export const TERMINAL_COMMANDS: TerminalCommandDef[] = [
     run: () => ({
       output: [
         "Maxime",
-        "Software Engineer with a security mindset.",
         "Builds backend systems, automation pipelines and AI tools.",
+        "Then tries to break them. Kali Linux, every day.",
+      ],
+    }),
+  },
+  {
+    cmd: "lorenz",
+    description: "Why there is a butterfly on the home page",
+    run: () => ({
+      output: [
+        "dx/dt = σ(y − x)      σ = 10",
+        "dy/dt = x(ρ − z) − y  ρ = 28",
+        "dz/dt = xy − βz       β = 8/3",
+        "",
+        "Deterministic, yet unpredictable: move a start point by 0.00001",
+        "and within seconds it is somewhere else entirely.",
+        "Same with software. Small input, big consequence. Click the hero to try.",
       ],
     }),
   },

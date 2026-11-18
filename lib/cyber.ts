@@ -1,7 +1,10 @@
 /** Static cyber-specific content that has no home in the projects data model */
 
+import type { TechSlug } from "./tech-marks";
+
 export interface CtfEntry {
   name: string;
+  mark: TechSlug;
   year: string;
   category: string;
   notes: string;
@@ -13,42 +16,64 @@ export interface SecurityArea {
   topics: string[];
 }
 
+export interface MethodStep {
+  phase: string;
+  goal: string;
+  tools: string[];
+}
+
 /** CTF activity — real participation only, no fabricated flags/scores */
 export const CTF_ENTRIES: CtfEntry[] = [
   {
-    name: "TryHackMe",
-    year: "2024–present",
-    category: "Learning Platform",
-    notes: "Regular practice in web exploitation, privilege escalation and network enumeration.",
+    name: "HackTheBox",
+    mark: "hackthebox",
+    year: "2025 – now",
+    category: "Boot2root over VPN",
+    notes: "Full machines from recon to root, plus isolated web and reversing challenges.",
   },
   {
-    name: "HackTheBox",
-    year: "2025–present",
-    category: "Platform",
-    notes: "Active machines focused on Linux privilege escalation and web app vulnerabilities.",
+    name: "TryHackMe",
+    mark: "tryhackme",
+    year: "2024 – now",
+    category: "Learning paths",
+    notes: "Guided paths on web exploitation, Linux privilege escalation and network enumeration.",
   },
+];
+
+/** How a box gets done — the method sheet kept open while working. A real sequence. */
+export const METHOD: MethodStep[] = [
+  { phase: "Recon", goal: "Map what answers: ports, services, versions, web content.", tools: ["nmap", "ffuf", "whatweb"] },
+  { phase: "Enumerate", goal: "Turn versions and behaviour into leads: users, shares, known CVEs.", tools: ["searchsploit", "Burp Suite"] },
+  { phase: "Foothold", goal: "Use one flaw or misconfiguration to get a first shell.", tools: ["Burp Suite", "Python", "netcat"] },
+  { phase: "Escalate", goal: "From user to root: sudo rules, SUID, cron, services, kernel.", tools: ["linpeas", "GTFOBins"] },
+  { phase: "Write up", goal: "What worked, what did not, and how the box should have been fixed.", tools: ["Markdown"] },
 ];
 
 /** Core security knowledge areas — evidence-grounded descriptions only */
 export const SECURITY_AREAS: SecurityArea[] = [
   {
-    title: "Web Application Security",
-    description: "Hands-on experience finding and exploiting OWASP Top 10 vulnerabilities, such as SQL injection, XSS, IDOR and authentication bypasses.",
-    topics: ["OWASP Top 10", "Burp Suite", "SQL Injection", "XSS", "Authentication flaws"],
+    title: "Web application security",
+    description: "Finding and exploiting the OWASP Top 10 in labs — then closing the same classes of bug in my own product's security review.",
+    topics: ["OWASP Top 10", "Burp Suite", "SQL injection", "XSS", "Auth flaws"],
   },
   {
-    title: "Network & Infrastructure",
-    description: "Port scanning, service enumeration, network mapping and firewall evasion, used in both lab and professional work.",
-    topics: ["Nmap", "Nessus", "Active Directory", "Lateral movement", "VLAN pivoting"],
+    title: "Linux & privilege escalation",
+    description: "Kali every day, plus the classic paths to root: SUID and sudo abuse, cron jobs, weak permissions.",
+    topics: ["Privilege escalation", "Permissions", "Processes", "Bash"],
   },
   {
-    title: "Linux & System Hardening",
-    description: "Daily Linux use combined with focused security learning: SUID/GUID abuse, crontab exploitation, kernel version checks and file permission audits.",
-    topics: ["Privilege escalation", "Linux internals", "Process analysis", "Shell scripting"],
+    title: "Network enumeration",
+    description: "Port scanning, service fingerprinting and mapping what a machine exposes before touching it.",
+    topics: ["Nmap", "Service enumeration", "Wireshark"],
   },
   {
-    title: "OSINT & Reconnaissance",
-    description: "Passive information gathering, footprinting and target profiling with open-source intelligence (OSINT) techniques.",
-    topics: ["Shodan", "WHOIS", "DNS enumeration", "Social engineering awareness"],
+    title: "Reverse engineering",
+    description: "CTF binaries and obfuscated scripts: reading what a program really does, not what it claims.",
+    topics: ["Static analysis", "Strings & patching", "Patience"],
+  },
+  {
+    title: "Cryptography",
+    description: "Classic and modern ciphers rebuilt by hand, to understand both how they work and how they fail.",
+    topics: ["Caesar → Vigenère", "XOR", "AES"],
   },
 ];

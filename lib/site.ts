@@ -1,7 +1,5 @@
 /**
  * Single source of truth for identity, URLs and contact details.
- *
- * ⚠️ REMPLIR AVANT MISE EN LIGNE — les valeurs ci-dessous sont des placeholders.
  * Tout le site (nav, footer, palette, terminal, metadata, sitemap, OG) lit ici.
  */
 
@@ -10,19 +8,28 @@ export const SITE = {
   role: "Software Engineer",
   tagline: "Software / Engineering / Security",
   description:
-    "Portfolio of Maxime, a Software Engineer who builds software with a security mindset.",
+    "Maxime builds backend systems, automation pipelines and AI tools in Python and TypeScript, with a security mindset.",
 
   /** Canonical origin — required for metadataBase, sitemap and OG images. */
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://example.com",
+  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://portfolio-maxime-briere.vercel.app",
 
-  /** TODO: remplacer par la vraie adresse */
   email: "briere.maxime.28@gmail.com",
 
+  /** Shown next to the live clock in the hero — keep it vague on purpose. */
+  location: "France",
+  timeZone: "Europe/Paris",
+
+  /** The green-dot line in the hero. Set to null to hide it. */
+  availability: "Open to backend & security projects" as string | null,
+
   links: {
-    /** TODO: remplacer par le vrai profil */
     github: "https://github.com/MMaxouB",
-    /** Discord username */
+    /** Discord profile (username: mmaxoub_87590) */
     discord: "https://discord.com/users/mmaxoub_87590",
+  },
+  handles: {
+    github: "github.com/MMaxouB",
+    discord: "mmaxoub_87590",
   },
 } as const;
 

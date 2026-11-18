@@ -49,3 +49,29 @@ test("getProjects returns a fresh array sorted by order", () => {
   const orders = first.map((p) => p.order);
   assert.deepEqual(orders, [...orders].sort((a, b) => a - b));
 });
+
+test("every skill points only at projects that exist", async () => {
+  const { SKILLS } = await import("@/lib/skills");
+  for (const skill of SKILLS) {
+    for (const slug of skill.projectSlugs) {
+      assert.ok(getProjectBySlug(slug), `${skill.name} cites unknown project "${slug}"`);
+    }
+  }
+});
+
+test("every timeline event points only at projects that exist", async () => {
+  const { TIMELINE } = await import("@/lib/timeline");
+  for (const event of TIMELINE) {
+    for (const slug of event.projectSlugs ?? []) {
+      assert.ok(getProjectBySlug(slug), `"${event.title}" cites unknown project "${slug}"`);
+    }
+  }
+});
+
+test("project highlights are short enough to read at a glance", () => {
+  for (const project of getProjects()) {
+    for (const h of project.highlights ?? []) {
+      assert.ok(h.value.length <= 8, `${project.title}: "${h.value}" is too long for a highlight`);
+    }
+  }
+});

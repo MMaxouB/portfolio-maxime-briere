@@ -1,158 +1,115 @@
-import { Metadata } from "next";
-import Link from "next/link";
+import type { Metadata } from "next";
 import { getSecurityProjects } from "@/lib/projects";
-import { CTF_ENTRIES, SECURITY_AREAS } from "@/lib/cyber";
-import { Plate } from "@/components/ui/Plate";
+import { CTF_ENTRIES, METHOD, SECURITY_AREAS } from "@/lib/cyber";
+import { SectionHeader, Em } from "@/components/ui/SectionHeader";
 import { Reveal } from "@/components/ui/Reveal";
-import { SectionHeading } from "@/components/ui/SectionHeading";
-import { ProjectFigure } from "@/components/projects/visuals/figures";
+import { ProjectCard } from "@/components/projects/ProjectCard";
+import { MiniVisual } from "@/components/projects/visuals/MiniVisual";
+import { BrandMark } from "@/components/ui/TechIcon";
 
 export const metadata: Metadata = {
-  title: "Cyber / Lab",
-  description:
-    "Security projects, penetration testing, CTF activity and research — a secondary but serious focus.",
+  title: "Cyber lab",
+  description: "Security practice and projects: HackTheBox, TryHackMe, a scanner MVP, ciphers by hand — a specialisation next to the engineering.",
+  alternates: { canonical: "/cyber" },
 };
 
 /**
- * No green, no glyphs, no terminal-as-identity (§0.3). The page uses the same
- * ink and the same title blocks as the rest of the site, because security here
- * is one chapter of an engineering document, not a different website.
+ * No green, no skulls, no terminal-as-identity (spec §0.3): same night, same
+ * ink. Security is a chapter of the engineering story, not another website.
  */
 export default function CyberPage() {
-  const securityProjects = getSecurityProjects();
+  const projects = getSecurityProjects();
 
   return (
-    <div className="container mx-auto min-h-screen max-w-6xl px-6 py-28">
-      <SectionHeading
-        as="h1"
-        index="04"
-        label="Cyber / Lab"
-        title="Security as a discipline."
-        annotation="Specialisation, not identity"
-        description="Security is one specialisation inside a broader software engineering identity, not the other way around. This section covers real engagement work, tools and ongoing practice."
-        className="mb-24 max-w-3xl"
-      />
+    <div className="relative isolate overflow-hidden pb-24 pt-32 sm:pt-40">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
+        <div
+          className="absolute -right-[10%] top-0 h-[60%] w-[60%]"
+          style={{ background: "radial-gradient(closest-side, rgba(124,92,255,0.18), transparent)" }}
+        />
+      </div>
 
-      {/* Projects */}
-      <section className="mb-24" aria-labelledby="cyber-projects">
-        <div className="mb-10 flex items-center gap-4">
-          <span className="title-block text-accent tabular-nums">01</span>
-          <h2 id="cyber-projects" className="title-block">
-            Projects
-          </h2>
-          <span className="h-px flex-1 bg-border-subtle" aria-hidden="true" />
-          <span className="title-block tabular-nums">
-            {String(securityProjects.length).padStart(2, "0")}
-          </span>
+      <div className="mx-auto max-w-site px-5 sm:px-8">
+        <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]">
+          <SectionHeader
+            as="h1"
+            path="~/lab"
+            lines={["Security as a", <Em key="em">second language.</Em>]}
+            description="I practise breaking things so the things I build break less. A specialisation — not the whole identity."
+          />
+          <div className="glass mv-live relative aspect-[16/10] overflow-hidden !rounded-[24px]">
+            <MiniVisual kind="shell" uid="cyber-hero" />
+          </div>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          {securityProjects.map((project, i) => (
-            <Reveal key={project.slug} delay={i * 0.06}>
-              <Link
-                href={`/projects/${project.slug}`}
-                className="group block h-full rounded-plate focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg-primary"
-              >
-                <Plate interactive index={String(i + 1).padStart(2, "0")} className="flex h-full flex-col">
-                  <div className="relative border-b border-border-subtle bg-bg-primary/60 p-4">
-                    <div
-                      aria-hidden="true"
-                      className="paper-rules absolute inset-0 opacity-60 [mask-image:radial-gradient(ellipse_70%_70%_at_50%_50%,#000,transparent)]"
-                    />
-                    <ProjectFigure slug={project.slug} className="relative max-h-[170px] w-full" />
-                  </div>
+        {/* Method: a real sequence, so it is numbered */}
+        <section aria-labelledby="method-title" className="mt-24">
+          <h2 id="method-title" className="font-display text-[1.9rem] font-bold tracking-[-0.03em] text-ink">
+            How a box gets done
+          </h2>
+          <p className="mt-2 max-w-[38rem] text-[15px] text-ink-2">The method sheet I keep open while I work, phase by phase.</p>
+          <ol className="mt-8 grid grid-cols-1 gap-3 md:grid-cols-5">
+            {METHOD.map((step, i) => (
+              <Reveal as="li" key={step.phase} delay={i * 0.06} className="glass lit relative p-5">
+                <span className="font-mono text-xs text-lilac">{String(i + 1).padStart(2, "0")}</span>
+                <h3 className="font-display mt-2 text-[1.2rem] font-bold text-ink">{step.phase}</h3>
+                <p className="mt-2 text-[13.5px] leading-relaxed text-ink-2">{step.goal}</p>
+                <p className="mt-3 font-mono text-[11.5px] text-ink-3">{step.tools.join("  ")}</p>
+              </Reveal>
+            ))}
+          </ol>
+        </section>
 
-                  <div className="flex flex-1 flex-col p-6">
-                    <div className="mb-4 flex items-center gap-3">
-                      <span className="title-block text-accent">
-                        {project.type.replace("-", " ")}
-                      </span>
-                      <span className="h-px flex-1 bg-border-subtle" aria-hidden="true" />
-                      <span className="title-block tabular-nums">{project.year}</span>
-                    </div>
-                    <h3 className="text-lg font-semibold text-text-primary">
-                      {project.title}
-                    </h3>
-                    <p className="mt-2 flex-1 text-sm leading-relaxed text-text-secondary">
-                      {project.shortDescription}
+        <section aria-labelledby="areas-title" className="mt-24">
+          <h2 id="areas-title" className="font-display text-[1.9rem] font-bold tracking-[-0.03em] text-ink">
+            What I practise
+          </h2>
+          <ul className="mt-8 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+            {SECURITY_AREAS.map((area, i) => (
+              <Reveal as="li" key={area.title} delay={i * 0.05} className="glass lit p-6">
+                <h3 className="text-[16.5px] font-semibold text-ink">{area.title}</h3>
+                <p className="mt-2 text-[14px] leading-relaxed text-ink-2">{area.description}</p>
+                <ul className="mt-4 flex flex-wrap gap-1.5">
+                  {area.topics.map((topic) => (
+                    <li key={topic} className="chip">
+                      {topic}
+                    </li>
+                  ))}
+                </ul>
+              </Reveal>
+            ))}
+            {CTF_ENTRIES.map((entry, i) => (
+              <Reveal as="li" key={entry.name} delay={0.1 + i * 0.05} className="glass lit flex flex-col p-6" >
+                <div className="flex items-center gap-3">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-line bg-deep/80">
+                    <BrandMark slug={entry.mark} size={20} />
+                  </span>
+                  <div>
+                    <h3 className="text-[16.5px] font-semibold text-ink">{entry.name}</h3>
+                    <p className="text-[12.5px] text-ink-3">
+                      {entry.category}, {entry.year}
                     </p>
                   </div>
-                </Plate>
-              </Link>
-            </Reveal>
-          ))}
-        </div>
-      </section>
+                </div>
+                <p className="mt-3 text-[14px] leading-relaxed text-ink-2">{entry.notes}</p>
+              </Reveal>
+            ))}
+          </ul>
+        </section>
 
-      {/* Knowledge areas — a register, not a card wall */}
-      <section className="mb-24" aria-labelledby="cyber-areas">
-        <div className="mb-10 flex items-center gap-4">
-          <span className="title-block text-accent tabular-nums">02</span>
-          <h2 id="cyber-areas" className="title-block">
-            Knowledge areas
+        <section aria-labelledby="sec-projects" className="mt-24">
+          <h2 id="sec-projects" className="font-display text-[1.9rem] font-bold tracking-[-0.03em] text-ink">
+            Security projects
           </h2>
-          <span className="h-px flex-1 bg-border-subtle" aria-hidden="true" />
-          <span className="title-block tabular-nums">
-            {String(SECURITY_AREAS.length).padStart(2, "0")}
-          </span>
-        </div>
-
-        <div className="flex flex-col">
-          {SECURITY_AREAS.map((area, i) => (
-            <Reveal key={area.title} delay={i * 0.05}>
-              <div className="grid gap-4 border-b border-border-subtle py-7 first:border-t md:grid-cols-[1fr_1.4fr] md:gap-10">
-                <div className="flex items-baseline gap-4">
-                  <span className="title-block shrink-0 tabular-nums text-accent">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  <h3 className="text-base font-semibold leading-snug text-text-primary">
-                    {area.title}
-                  </h3>
-                </div>
-                <div>
-                  <p className="text-sm leading-relaxed text-text-secondary">
-                    {area.description}
-                  </p>
-                  <p className="title-block mt-3 normal-case tracking-[0.08em]">
-                    {area.topics.join(" · ")}
-                  </p>
-                </div>
-              </div>
-            </Reveal>
-          ))}
-        </div>
-      </section>
-
-      {/* Practice */}
-      <section aria-labelledby="cyber-practice">
-        <div className="mb-10 flex items-center gap-4">
-          <span className="title-block text-accent tabular-nums">03</span>
-          <h2 id="cyber-practice" className="title-block">
-            Continuous practice
-          </h2>
-          <span className="h-px flex-1 bg-border-subtle" aria-hidden="true" />
-        </div>
-
-        <div className="grid gap-6 md:grid-cols-2">
-          {CTF_ENTRIES.map((entry, i) => (
-            <Reveal key={entry.name} delay={i * 0.06}>
-              <Plate className="flex h-full flex-col p-6">
-                <div className="flex items-center gap-3">
-                  <span className="title-block text-accent">{entry.category}</span>
-                  <span className="h-px flex-1 bg-border-subtle" aria-hidden="true" />
-                  <span className="title-block tabular-nums">{entry.year}</span>
-                </div>
-                <h3 className="mt-5 text-base font-semibold text-text-primary">
-                  {entry.name}
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-text-secondary">
-                  {entry.notes}
-                </p>
-              </Plate>
-            </Reveal>
-          ))}
-        </div>
-      </section>
+          <ul className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {projects.map((project) => (
+              <li key={project.slug}>
+                <ProjectCard project={project} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      </div>
     </div>
   );
 }

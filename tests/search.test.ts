@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { searchCommands, scoreCommand } from "@/lib/search";
 import { COMMANDS, type Command } from "@/lib/commands";
+import { getProjects } from "@/lib/projects";
 
 const labels = (results: Command[]) => results.map((c) => c.label);
 
@@ -16,15 +17,16 @@ test("an empty query returns a copy, not the shared array", () => {
 });
 
 test("a technology only present in keywords still finds the project", () => {
-  // "Nmap" appears in no label — only in Enterprise Network Audit's tech list.
+  // "Nmap" appears in no label — only in the CTF labs' tech list.
   const results = searchCommands(COMMANDS, "nmap");
-  assert.equal(results[0].label, "Enterprise Network Audit");
+  assert.equal(results[0].label, "CTF & pentest labs");
 });
 
 test("a category finds every project carrying it", () => {
   const results = labels(searchCommands(COMMANDS, "security"));
-  assert.ok(results.includes("Enterprise Network Audit"));
-  assert.ok(results.includes("Vulnerability Scanner"));
+  for (const project of getProjects().filter((p) => p.category.includes("Security"))) {
+    assert.ok(results.includes(project.title), `${project.title} missing from "security"`);
+  }
 });
 
 test("label matches outrank keyword and description matches", () => {
