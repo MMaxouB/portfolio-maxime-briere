@@ -57,6 +57,9 @@ export function SkyBackground() {
     let nextMeteorAt = performance.now() + 7000;
     let frame = 0;
     let lastDraw = 0;
+    // The pointer is a faint lantern: stars near it brighten a little
+    const lantern = { x: -9999, y: -9999, strength: 0 };
+    const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 
     function build() {
       dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -100,10 +103,15 @@ export function SkyBackground() {
         if (y > height + 4) continue;
 
         const twinkle = moving ? 0.72 + 0.28 * Math.sin(t * star.speed + star.phase) : 1;
-        const alpha = star.a * twinkle;
+        let glow = 0;
+        if (lantern.strength > 0.01) {
+          const d = Math.hypot(star.x - lantern.x, y - lantern.y);
+          if (d < 170) glow = (1 - d / 170) ** 2 * lantern.strength;
+        }
+        const alpha = Math.min(1, star.a * twinkle + glow * 0.75);
         ctx.fillStyle = `rgba(${star.tint},${alpha})`;
         ctx.beginPath();
-        ctx.arc(star.x, y, star.r, 0, Math.PI * 2);
+        ctx.arc(star.x, y, star.r * (1 + glow * 0.9), 0, Math.PI * 2);
         ctx.fill();
 
         // The brightest near stars get a faint cross glint
@@ -155,6 +163,7 @@ export function SkyBackground() {
 
     function loop(now: number) {
       // ~30 fps is plenty for a twinkle and keeps the GPU cool
+      lantern.strength *= 0.985;
       if (now - lastDraw > 32) {
         draw(now);
         lastDraw = now;
@@ -173,6 +182,13 @@ export function SkyBackground() {
       if (!ambientMotionOn()) draw(performance.now());
     }
 
+    function onPointerMove(event: PointerEvent) {
+      if (!finePointer || event.pointerType !== "mouse") return;
+      lantern.x = event.clientX;
+      lantern.y = event.clientY;
+      lantern.strength = 1;
+    }
+
     function onResize() {
       build();
       start();
@@ -187,9 +203,11 @@ export function SkyBackground() {
     reduced.addEventListener("change", start);
     window.addEventListener("resize", onResize);
     window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
     document.addEventListener("visibilitychange", start);
 
     return () => {
+      window.removeEventListener("pointermove", onPointerMove);
       cancelAnimationFrame(frame);
       observer.disconnect();
       reduced.removeEventListener("change", start);

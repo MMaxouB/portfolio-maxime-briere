@@ -1,80 +1,109 @@
-# Portfolio
+# Portfolio — v2 "Night"
 
-Maxime's portfolio — Next.js 16 (App Router), React 19, TypeScript, Tailwind v4.
+Maxime's portfolio — Next.js 16 (App Router), React 19, TypeScript, Tailwind v4,
+Motion. No images, no CMS, no backend: every visual on the site is drawn in SVG
+or canvas from code.
 
-The full brief lives in [`PORTFOLIO_SPEC.md`](./PORTFOLIO_SPEC.md) (French) — read
-it before making structural or visual changes. `AGENTS.md` has environment-
-specific notes for coding agents working in this repo.
+The original brief lives in [`PORTFOLIO_SPEC.md`](./PORTFOLIO_SPEC.md) (French).
+`AGENTS.md` has environment notes for coding agents.
 
-## Getting started
+## Run it locally
+
+Needs **Node.js 20.9+**.
 
 ```bash
-npm run dev     # dev server (Turbopack)
-npm run build   # production build
-npm run lint    # ESLint
-npm run test    # node --test, no extra runner
-npx tsc --noEmit
+./scripts/local.sh          # dev server, hot reload → http://localhost:3000
+./scripts/local.sh prod     # production build, then serve it
+./scripts/local.sh check    # lint + typecheck + tests + build
+./scripts/local.sh dev 4000 # any mode on another port
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+The script installs dependencies on first run. Plain npm works too:
 
-## Configuration
+```bash
+npm ci
+npm run dev        # http://localhost:3000
+npm run preview    # build + start
+npm run check      # everything CI should run
+```
 
-Real identity, contact and social links live in a single file:
-[`lib/site.ts`](./lib/site.ts). Everything else — nav, footer, command
-palette, terminal, metadata, sitemap, OG image — reads from there.
+## What is on the page
+
+| Section | The idea |
+|---|---|
+| Hero | `$ whoami` types itself and the name decodes as its output. On the right, a live **Lorenz attractor** (σ=10, ρ=28, β=8/3, RK4). Click it to drop a "butterfly": a copy of a trail moved by 0.00001. The simulation fast-forwards and the readout shows the gap growing until the two trails take different paths — deterministic is not predictable. |
+| About | Who, facts, "what I work on", and four measured numbers (count up on first view). |
+| Projects | Filterable grid. Each card draws a **live SVG sketch** of its project instead of a screenshot (timeline + playhead, radar, three agents racing, notes → Markdown…). Sketches run on hover, always on touch, and **morph** into the case study through React `ViewTransition`. |
+| Toolbox | A real CSS-3D orbit of tools around a sphere; skill cards with self-rated levels that open onto the projects proving them. |
+| Contact | Copy-to-clipboard email and a form that composes a `mailto:` — nothing is sent or stored by the site. |
+| Footer | A seeded procedural skyline with windows switching on and off, reflected in water. |
+
+Plus: a custom cursor (dot + spring ring that says what a click will do:
+"Open", "Drop ε", "Copy", "Proof"), a pointer light on glass borders, magnetic
+buttons, stars that brighten near the pointer, a ⌘K/Ctrl+K command palette and
+a terminal easter egg (`help`, `lorenz`, `open <slug>`…).
+
+## Content
+
+Everything editable lives in `lib/`, typed:
+
+| File | What |
+|---|---|
+| `lib/site.ts` | Name, email, links, location/time zone, availability line |
+| `lib/projects.ts` | Projects — measured numbers only; `visual` picks the card sketch |
+| `lib/skills.ts` | Skills, self-rated scores, the projects proving each one |
+| `lib/timeline.ts` | Milestones, oldest first |
+| `lib/about.ts` | About copy, facts, focus list, quote |
+| `lib/cyber.ts` | Lab page: method, areas, platforms |
+
+Adding a project = one entry in `lib/projects.ts` (pick an existing `visual`, or
+add a sketch in `components/projects/visuals/MiniVisual.tsx`). Tests check that
+every skill and timeline event points at a project that exists.
 
 ## Design system
 
-The visual direction is "engineering document," not dashboard-SaaS: hairline
-rules, numbered title blocks (`01 / LABEL`), specimen-plate cards with corner
-registration marks, and schematic SVG figures per project instead of
-screenshots or stock icons.
+Tokens are in [`app/globals.css`](./app/globals.css):
 
-Tokens live in [`app/globals.css`](./app/globals.css):
-
-| Token | Value | Rule |
+| Token | Value | Use |
 |---|---|---|
-| `--color-accent` | deep blue-violet | **Ink, never paint** — hairlines, marks, small text only. No filled accent surface anywhere; the primary button is inverted white-on-black, not accent-filled. |
-| `--color-accent-dim` / `--color-accent-wash` | derived | Rest-state / background-wash variants of the same hue — one family, no rainbow (spec §1.2). |
-| `--radius-plate` / `--radius-control` | 10px / 6px | The only two radii on the site. |
+| `night` / `deep` | `#06040f` / `#0d0a1f` | Page / surfaces |
+| `ink` / `ink-2` / `ink-3` | `#eeebff` / `#aaa4ca` / `#8a84ad` | Text — all ≥ 4.5:1 on every surface |
+| `violet` → `indigo` | `#8b6cff` → `#5b6cff` | The one accent family (gradient words, buttons, light) |
+| `signal` | `#5ee9b5` | Availability dot only |
+| `lamp` | `#ffb86b` | Skyline windows only — illustration, never UI |
 
-Custom utility classes (`.title-block`, `.paper-grain`, …) **must** live in
-`@layer components` — unlayered CSS in Tailwind v4 outranks utility classes
-and will silently override things like `text-accent`.
+Type: **Bricolage Grotesque** (display), **Geist** / Geist Mono (text, shell
+paths), **Kalam** (margin notes). Section eyebrows are shell paths (`~/about`)
+that type themselves once.
 
-The global background ([`components/layout/PageBackground.tsx`](./components/layout/PageBackground.tsx))
-is a fixed, inert layer: a directional gradient wash in the accent colour plus
-large geometric plates (the same isometric-plane shape used in the hero
-visual) bleeding off two corners, at low opacity, over a fine grain texture.
-Deliberately not a node-and-line "cyber network" pattern — the spec (§0.3)
-rules that out explicitly.
+Custom classes (`.glass`, `.lit`, `.pill`, `.btn-primary`…) **must** live in
+`@layer components` — unlayered CSS in Tailwind v4 outranks utilities.
 
-## Content voice
+## Motion and accessibility
 
-Copy across the site (about, project write-ups, skill/timeline descriptions)
-is written in plain, direct English — aimed at a B2/C1 reader, not native-
-flourish prose. Short sentences, common vocabulary, technical terms kept only
-where the audience needs them (pentest/security jargon is fine; ornate
-phrasing is not).
+- One pause button (top bar / mobile menu) stops every ambient animation; the
+  choice is remembered. `prefers-reduced-motion` is respected everywhere — with
+  motion off, clicking the attractor jumps straight to the diverged result.
+- Never branch rendered markup on reduced motion: the server cannot know it.
+  `MotionConfig reducedMotion="user"` (in `providers/AppProviders.tsx`) drops
+  transforms on the client instead.
+- The custom cursor only exists for a mouse; touch and pen keep native input.
+- axe-core (WCAG 2 A/AA + best practices): 0 violations on every route.
+- Hero LCP ~0.25 s on a local production build: big text comes into focus from
+  a faint blur instead of fading in from nothing.
 
 ## Project structure
 
 ```
-app/            routes (App Router)
-components/     ui/, layout/, hero/, projects/, expertise/, timeline/,
-                terminal/, command-palette/, home/
-lib/            typed content + helpers (projects, skills, timeline, cyber,
-                navigation, site config, search, about copy)
-providers/      AppProviders — palette/terminal open state, ⌘K shortcut
-tests/          node --test suite (search ranking, command registry,
-                terminal commands)
+app/          routes (App Router), globals.css, OG image
+components/   hero/ home/ projects/ scenery/ cursor/ layout/ ui/
+              terminal/ command-palette/ timeline/
+lib/          typed content + helpers (projects, skills, timeline, site, …)
+providers/    AppProviders — palette/terminal state, ⌘K, MotionConfig
+assets/fonts/ static TTF for the OG renderer (OFL)
+scripts/      local.sh
+tests/        node --test (search ranking, commands, terminal, data integrity)
 ```
 
-## Terminal & command palette
-
-An easter egg (spec §13) reachable from the footer, `⌘K`/`Ctrl+K`, or typing
-`palette` in the terminal. Commands are defined once in
-[`components/terminal/TerminalCommands.ts`](./components/terminal/TerminalCommands.ts)
-and [`lib/commands.ts`](./lib/commands.ts) — `help` output is generated from
-the registry so it cannot drift from what actually runs.
+Tech marks come from [Simple Icons](https://simpleicons.org) (CC0), inlined in
+`lib/tech-marks.ts`.
