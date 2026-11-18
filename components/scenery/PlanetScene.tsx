@@ -63,12 +63,8 @@ uniform vec3 uLight; uniform vec3 uDeep; uniform vec3 uMid; uniform vec3 uAtmo;
 varying vec3 vObj; varying vec3 vN; varying vec3 vView;
 void main(){
   vec3 N = normalize(vN); vec3 V = normalize(vView); vec3 L = normalize(uLight);
-  vec3 p = normalize(vObj);
   float day = smoothstep(-0.2, 0.75, dot(N, L));
   vec3 col = mix(uDeep, uMid, day);
-  // Soft latitude bands that turn with the planet
-  float band = sin(p.y * 11.0 + sin(p.x * 3.0 + p.z * 2.0) * 0.7) * 0.5 + 0.5;
-  col += uAtmo * band * 0.07 * (0.4 + day);
   float rim = pow(1.0 - max(dot(N, V), 0.0), 3.0);
   col += uAtmo * rim * (0.3 + 0.9 * day);
   gl_FragColor = vec4(col, 1.0);

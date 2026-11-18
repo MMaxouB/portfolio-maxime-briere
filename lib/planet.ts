@@ -19,8 +19,11 @@ export interface PlanetRing {
   skills: string[];
 }
 
+/**
+ * Kept small on purpose: two rings, the eight skills I rate highest that have a
+ * brand mark (see `score` in lib/skills.ts). Bigger icons, calmer scene.
+ */
 export const PLANET_RINGS: PlanetRing[] = [
-  { radius: 1.55, tilt: [0.5, 0.25], speed: 0.16, size: 0.5, skills: ["python", "typescript", "fastapi", "nextjs", "docker"] },
-  { radius: 1.95, tilt: [0.62, -0.45], speed: -0.11, size: 0.46, skills: ["git", "linux", "web-security", "postgresql", "javascript", "bash"] },
-  { radius: 2.33, tilt: [0.38, 0.55], speed: 0.07, size: 0.42, skills: ["pentesting", "flask", "html-css", "webgl-webaudio"] },
+  { radius: 1.6, tilt: [0.45, 0.22], speed: 0.17, size: 0.62, skills: ["python", "git", "typescript", "linux"] },
+  { radius: 2.05, tilt: [0.4, -0.3], speed: -0.11, size: 0.54, skills: ["fastapi", "web-security", "javascript", "html-css"] },
 ];

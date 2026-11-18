@@ -276,9 +276,9 @@ export const SKILLS: Skill[] = [
     slug: "cryptography",
     name: "Cryptography",
     category: "security",
-    score: 66, // v2
-    levelLabel: "Developing",
-    description: "Ciphers rebuilt by hand, from Caesar to AES, to see where they break.",
+    score: 80,
+    levelLabel: "Advanced",
+    description: "Two days of training, then ciphers rebuilt by hand from Caesar to AES — plus crypto challenges in CTFs.",
     mark: { glyph: "key" },
     projectSlugs: ["crypto-python"],
   },

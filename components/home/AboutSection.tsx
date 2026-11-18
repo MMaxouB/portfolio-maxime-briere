@@ -4,13 +4,12 @@ import {
   Binary,
   Bot,
   Flag,
-  FlaskConical,
-  Gauge,
+  FileText,
+  LayoutGrid,
   KeyRound,
   MapPin,
   Orbit,
   Server,
-  ShieldCheck,
   Shield,
   SquareTerminal,
   Sparkles,
@@ -18,7 +17,6 @@ import {
 } from "lucide-react";
 import { DEEP_PAGES } from "@/lib/navigation";
 import { ABOUT_FACTS, ABOUT_FOCUS, ABOUT_INTRO, ABOUT_QUOTE } from "@/lib/about";
-import { getFeaturedProjects, getProjects } from "@/lib/projects";
 import { SectionHeader, Em } from "@/components/ui/SectionHeader";
 import { Reveal } from "@/components/ui/Reveal";
 import { CountUp } from "@/components/ui/CountUp";
@@ -35,14 +33,12 @@ const FACT_ICONS = { terminal: SquareTerminal, pin: MapPin, flag: Flag } as cons
 const FOCUS_ICONS = { server: Server, bot: Bot, shield: Shield, binary: Binary, orbit: Orbit, key: KeyRound } as const;
 
 export function AboutSection() {
-  const total = getProjects().length;
-  const featured = getFeaturedProjects().length;
-
+  // Measured numbers from the project sheets (see lib/projects.ts), one per area of work.
   const stats = [
-    { icon: FlaskConical, value: total, suffix: "", label: `projects, ${featured} featured` },
-    { icon: TestTubes, value: 892, suffix: "", label: "automated tests on one product" },
-    { icon: ShieldCheck, value: 29, suffix: "", label: "security findings fixed with a test" },
-    { icon: Gauge, value: 85, suffix: " fps", label: "1080p video, composited in a browser" },
+    { icon: Flag, value: 10, suffix: "", label: "CNC 2025 challenges solved and written up" },
+    { icon: FileText, value: 43, suffix: " pp", label: "of documentation for a platform with no handover" },
+    { icon: LayoutGrid, value: 31, suffix: "", label: "page layouts built not to look alike" },
+    { icon: TestTubes, value: 393, suffix: "", label: "tests on my first Discord workspace bot" },
   ];
 
   return (

@@ -46,7 +46,7 @@ npm run check      # everything CI should run
 
 `components/scenery/PlanetScene.tsx` — three.js, intentionally simple: a dark
 violet sphere with a lit rim and a halo, and your skills as icons turning around
-it on three tilted rings (they pass in front of and behind the sphere). Drag to
+it on two tilted rings — the eight skills I rate highest (they pass in front of and behind the sphere). Drag to
 spin; hover an icon to read the skill's name, click to open it on `/expertise`.
 
 - **Data-driven.** The rings are a list in `lib/planet.ts`: put a skill slug (from
