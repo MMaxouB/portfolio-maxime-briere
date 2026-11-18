@@ -360,49 +360,6 @@ function AudioVisual({ p }: { p: string }) {
   );
 }
 
-function PanelVisual({ p }: { p: string }) {
-  return (
-    <Frame p={p} label="A Discord panel for an Obsidian project: counters, buttons and a menu">
-      <rect x="24" y="22" width="352" height="206" rx="10" fill="#15122e" />
-      <rect x="24" y="22" width="4" height="206" rx="2" fill="#8b6cff" />
-      <text x="44" y="50" fontSize="13" fill="#fff" style={SANS}>
-        📁 portfolio
-      </text>
-      <text x="44" y="68" fontSize="10" fill="#aaa4ca" style={SANS}>
-        status: active · priority: medium
-      </text>
-      {[
-        ["tasks", "12"],
-        ["open", "4"],
-        ["notes", "37"],
-      ].map(([k, v], i) => (
-        <g key={k} transform={`translate(${44 + i * 108} 84)`}>
-          <rect width="96" height="46" rx="8" fill="rgba(255,255,255,0.04)" />
-          <text x="12" y="20" fontSize="9" fill="#736d96" style={MONO}>
-            {k}
-          </text>
-          <text x="12" y="38" fontSize="16" fill="#fff" style={SANS}>
-            {v}
-          </text>
-        </g>
-      ))}
-      <rect x="44" y="144" width="312" height="28" rx="6" fill="rgba(255,255,255,0.04)" stroke="rgba(185,166,255,0.18)" />
-      <text x="56" y="162" fontSize="10.5" fill="#aaa4ca" style={SANS}>
-        Pick a task to edit…
-      </text>
-      <path d="M340 156 l4 4 l4 -4" fill="none" stroke="#aaa4ca" strokeWidth="1.5" />
-      {["Done", "Archive", "New note"].map((b, i) => (
-        <g key={b} transform={`translate(${44 + i * 92} 184)`}>
-          <rect className={i === 0 ? "mv" : undefined} width="82" height="28" rx="6" fill={i === 0 ? "#5b6cff" : "rgba(255,255,255,0.07)"} style={i === 0 ? anim("mv-pulse", 2.4, 1.2, { animationTimingFunction: "ease-in-out" }) : undefined} />
-          <text x="41" y="18" textAnchor="middle" fontSize="10.5" fill="#fff" style={SANS}>
-            {b}
-          </text>
-        </g>
-      ))}
-    </Frame>
-  );
-}
-
 function GridVisual({ p }: { p: string }) {
   const thumbs = [
     [[0, 0, 1, 0.3], [0, 0.38, 0.6, 0.62], [0.66, 0.38, 0.34, 0.62]],
@@ -495,27 +452,143 @@ function CipherVisual({ p }: { p: string }) {
   );
 }
 
-function DossierVisual({ p }: { p: string }) {
+/** CAPSA (NDA): modules as redacted tiles — no names, only the state of the work. */
+function ModulesVisual({ p }: { p: string }) {
+  // [state] done = solid, building = pulsing, planned = outline
+  const tiles: ("done" | "building" | "planned")[] = ["done", "done", "building", "done", "building", "planned", "building", "planned"];
   return (
-    <Frame p={p} label="A takeover dossier with redacted lines — details are under NDA">
-      {[2, 1, 0].map((i) => (
-        <g key={i} transform={`translate(${110 + i * 16} ${26 + i * 10}) rotate(${-4 + i * 3})`}>
-          <rect width="170" height="196" rx="6" fill={i === 0 ? "#1a1640" : "#141030"} stroke="rgba(185,166,255,0.18)" />
-          {i === 0 &&
-            Array.from({ length: 9 }, (_, l) => (
-              <rect key={l} x="16" y={30 + l * 17} width={l % 3 === 1 ? 92 : 138} height="6" rx="3" fill={l % 4 === 2 ? "#06040f" : "#3a3466"} />
-            ))}
-        </g>
-      ))}
-      <g transform="translate(258 168) rotate(-12)">
-        <rect x="-44" y="-17" width="88" height="34" rx="6" fill="none" stroke="#c4b5ff" strokeWidth="2" />
-        <text textAnchor="middle" y="6" fontSize="16" fill="#c4b5ff" style={MONO}>
-          NDA
+    <Frame p={p} label="A platform under NDA: modules shown as redacted tiles, some finished, some being built">
+      <text x="24" y="30" fontSize="11" fill="#d9d3ff" style={SANS}>
+        Platform under NDA
+      </text>
+      <g transform="translate(290 16)">
+        <rect width="86" height="22" rx="11" fill="rgba(139,108,255,0.18)" stroke="#a28bff" />
+        <circle cx="14" cy="11" r="3.5" fill="#5ee9b5" className="mv" style={anim("mv-pulse", 2.2, 0.5, { animationTimingFunction: "ease-in-out" })} />
+        <text x="24" y="15" fontSize="9.5" fill="#fff" style={MONO}>
+          in dev
         </text>
       </g>
-      <text x="126" y="58" fontSize="11" fill="#d9d3ff" style={SANS}>
-        Takeover dossier — 43 pp.
+      {tiles.map((state, i) => {
+        const x = 24 + (i % 4) * 90;
+        const y = 48 + Math.floor(i / 4) * 92;
+        return (
+          <g key={i} transform={`translate(${x} ${y})`}>
+            <rect
+              width="82"
+              height="82"
+              rx="10"
+              fill={state === "done" ? "rgba(139,108,255,0.16)" : "rgba(255,255,255,0.03)"}
+              stroke={state === "planned" ? "rgba(185,166,255,0.22)" : "rgba(185,166,255,0.4)"}
+              strokeDasharray={state === "planned" ? "4 4" : undefined}
+            />
+            {/* redacted label bars */}
+            <rect x="12" y="16" width={i % 3 === 0 ? 44 : 56} height="7" rx="3.5" fill="#06040f" />
+            <rect x="12" y="30" width={i % 2 === 0 ? 34 : 50} height="5" rx="2.5" fill="#2c2660" />
+            <rect x="12" y="40" width="58" height="5" rx="2.5" fill="#2c2660" opacity="0.7" />
+            {/* progress */}
+            <rect x="12" y="62" width="58" height="5" rx="2.5" fill="rgba(255,255,255,0.06)" />
+            <rect
+              className={state === "building" ? "mv" : undefined}
+              x="12"
+              y="62"
+              width={state === "done" ? 58 : state === "building" ? 34 : 0}
+              height="5"
+              rx="2.5"
+              fill={state === "done" ? "#5ee9b5" : "#8b6cff"}
+              style={state === "building" ? anim("mv-pulse", 2.6, 0.3 * i, { animationTimingFunction: "ease-in-out" }) : undefined}
+            />
+          </g>
+        );
+      })}
+    </Frame>
+  );
+}
+
+/** Claude optimisation: one assistant at the centre, the pieces I built around it. */
+function ToolkitVisual({ p }: { p: string }) {
+  const nodes = [
+    { label: "skills", x: 84, y: 60, n: "17" },
+    { label: "plugin", x: 316, y: 60, n: "7" },
+    { label: "memory", x: 84, y: 190, n: "per project" },
+    { label: "agents", x: 316, y: 190, n: "council of 5" },
+  ];
+  return (
+    <Frame p={p} label="An AI assistant at the centre with skills, a plugin, memory and agents connected to it">
+      {nodes.map((n) => (
+        <line
+          key={n.label}
+          className="mv"
+          x1="200"
+          y1="125"
+          x2={n.x}
+          y2={n.y}
+          stroke="#8b6cff"
+          strokeWidth="1.5"
+          strokeDasharray="4 6"
+          style={anim("mv-flow", 3, 0)}
+        />
+      ))}
+      <circle cx="200" cy="125" r="40" fill="rgba(139,108,255,0.14)" stroke="#a28bff" />
+      <circle className="mv" cx="200" cy="125" r="52" fill="none" stroke="#8b6cff" strokeOpacity="0.5" style={anim("mv-pulse", 3.2, 0.8, { animationTimingFunction: "ease-in-out" })} />
+      <text x="200" y="130" textAnchor="middle" fontSize="15" fill="#fff" style={SANS}>
+        Claude
       </text>
+      {nodes.map((n, i) => (
+        <g key={n.label} transform={`translate(${n.x - 52} ${n.y - 22})`}>
+          <rect width="104" height="44" rx="12" fill="rgba(255,255,255,0.05)" stroke="rgba(185,166,255,0.3)" />
+          <text x="52" y="20" textAnchor="middle" fontSize="11.5" fill="#fff" style={SANS}>
+            {n.label}
+          </text>
+          <text x="52" y="35" textAnchor="middle" fontSize="9.5" fill="#aaa4ca" style={MONO}>
+            {n.n}
+          </text>
+          <circle className="mv" cx="92" cy="12" r="3" fill="#5ee9b5" style={anim("mv-pulse", 2.4, i * 0.6, { animationTimingFunction: "ease-in-out" })} />
+        </g>
+      ))}
+    </Frame>
+  );
+}
+
+/** Workspace: three versions side by side, a highlight stepping through them. */
+function EvolutionVisual({ p }: { p: string }) {
+  const stages = [
+    { t: "Obsidian", s: "+ Discord bot", chips: ["vault", "bot"] },
+    { t: "Notion", s: "knowledge base", chips: ["pages", "db"] },
+    { t: "Notion + OneDrive", s: "+ GitHub + Claude", chips: ["files", "git", "AI"] },
+  ];
+  return (
+    <Frame p={p} label="A workspace evolving in three steps: Obsidian and Discord, then Notion, then Notion with OneDrive, GitHub and an AI assistant">
+      <line x1="40" x2="360" y1="52" y2="52" stroke="rgba(185,166,255,0.25)" strokeDasharray="3 5" />
+      {stages.map((st, i) => {
+        const x = 24 + i * 120;
+        return (
+          <g key={st.t} transform={`translate(${x} 0)`}>
+            <circle cx="56" cy="52" r="6" fill={i === 2 ? "#8b6cff" : "#3a3172"} stroke="#a28bff" />
+            <rect x="0" y="76" width="112" height="140" rx="12" fill="rgba(255,255,255,0.035)" stroke="rgba(185,166,255,0.2)" />
+            <text x="56" y="102" textAnchor="middle" fontSize="11.5" fill="#fff" style={SANS}>
+              {st.t}
+            </text>
+            <text x="56" y="118" textAnchor="middle" fontSize="9" fill="#aaa4ca" style={SANS}>
+              {st.s}
+            </text>
+            {st.chips.map((c, k) => (
+              <g key={c} transform={`translate(${14 + (k % 2) * 46} ${136 + Math.floor(k / 2) * 30})`}>
+                <rect width="40" height="22" rx="7" fill={i === 2 ? "rgba(139,108,255,0.26)" : "rgba(255,255,255,0.06)"} />
+                <text x="20" y="15" textAnchor="middle" fontSize="9" fill="#d9d3ff" style={MONO}>
+                  {c}
+                </text>
+              </g>
+            ))}
+          </g>
+        );
+      })}
+      <text x="24" y="238" fontSize="9.5" fill="#736d96" style={MONO}>
+        start
+      </text>
+      <text x="376" y="238" textAnchor="end" fontSize="9.5" fill="#c4b5ff" style={MONO}>
+        today
+      </text>
+      <rect className="mv" x="22" y="74" width="116" height="144" rx="13" fill="none" stroke="#c4b5ff" strokeWidth="2" style={anim("mv-slide", 6, 0, { animationTimingFunction: "cubic-bezier(.16,1,.3,1)" })} />
     </Frame>
   );
 }
@@ -527,11 +600,12 @@ const VISUALS: Record<ProjectVisual, (props: { p: string }) => React.ReactElemen
   handwriting: HandwritingVisual,
   query: QueryVisual,
   audio: AudioVisual,
-  panel: PanelVisual,
   grid: GridVisual,
   shell: ShellVisual,
   cipher: CipherVisual,
-  dossier: DossierVisual,
+  modules: ModulesVisual,
+  toolkit: ToolkitVisual,
+  evolution: EvolutionVisual,
 };
 
 /** `uid` keeps gradient ids unique when several visuals share a page. */

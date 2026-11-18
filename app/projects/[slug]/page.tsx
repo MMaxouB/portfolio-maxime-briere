@@ -98,7 +98,7 @@ export default async function ProjectDetail({ params }: ProjectPageProps) {
             {project.title}
           </h1>
           <p className="mt-6 max-w-[44rem] text-[1.2rem] leading-relaxed text-ink-2">{project.shortDescription}</p>
-          {(project.githubUrl || project.liveUrl) && (
+          {(project.githubUrl || project.liveUrl || (project.extraLinks && project.extraLinks.length > 0)) && (
             <div className="mt-8 flex flex-wrap gap-3">
               {project.githubUrl && (
                 <a href={project.githubUrl} target="_blank" rel="noopener noreferrer" className="btn-ghost">
@@ -109,8 +109,15 @@ export default async function ProjectDetail({ params }: ProjectPageProps) {
               {project.liveUrl && (
                 <a href={project.liveUrl} target="_blank" rel="noopener noreferrer" className="btn-primary">
                   Open the live site <ArrowUpRight size={16} aria-hidden="true" />
+                  <span className="sr-only"> (opens in a new tab)</span>
                 </a>
               )}
+              {project.extraLinks?.map((link) => (
+                <a key={link.href} href={link.href} target="_blank" rel="noopener noreferrer" className="btn-ghost">
+                  {link.label} <ArrowUpRight size={15} aria-hidden="true" />
+                  <span className="sr-only"> (opens in a new tab)</span>
+                </a>
+              ))}
             </div>
           )}
         </header>
@@ -161,6 +168,26 @@ export default async function ProjectDetail({ params }: ProjectPageProps) {
             {project.context && (
               <Block title="Why it exists">
                 <p className="text-[1.075rem] leading-relaxed text-ink-2">{project.context}</p>
+              </Block>
+            )}
+
+            {project.evolution && project.evolution.length > 0 && (
+              <Block title="How it evolved">
+                <ol className="relative flex flex-col gap-6 border-l border-line-strong pl-7">
+                  {project.evolution.map((stage, i, all) => (
+                    <li key={stage.title} className="relative">
+                      <span
+                        aria-hidden="true"
+                        className={`absolute -left-[35px] top-1.5 h-3 w-3 rounded-full border ${
+                          i === all.length - 1 ? "border-lilac bg-violet shadow-[0_0_14px_rgba(139,108,255,0.9)]" : "border-line-strong bg-deep"
+                        }`}
+                      />
+                      <p className="font-mono text-xs uppercase tracking-wider text-lilac">{stage.when}</p>
+                      <h3 className="font-display mt-1 text-[1.25rem] font-bold tracking-[-0.02em] text-ink">{stage.title}</h3>
+                      <p className="mt-2 text-[1.02rem] leading-relaxed text-ink-2">{stage.text}</p>
+                    </li>
+                  ))}
+                </ol>
               </Block>
             )}
 

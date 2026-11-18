@@ -59,12 +59,12 @@ export const TIMELINE: TimelineEvent[] = [
   {
     year: "2026",
     month: "Jul",
-    title: "Three AIs, one question",
+    title: "One question, several AIs",
     description:
-      "A Node.js pipeline that drives ChatGPT, Claude and Gemini in parallel and keeps the best answer.",
+      "An experiment in Node.js: send one question to several AI assistants, score the answers and keep the best.",
     area: "ai",
     projectSlugs: ["agent-orchestrator"],
-    technologies: ["Node.js", "Playwright"],
+    technologies: ["Node.js", "JSON Schema"],
   },
   {
     year: "2026",
@@ -81,9 +81,9 @@ export const TIMELINE: TimelineEvent[] = [
     month: "Aug",
     title: "A month of systems",
     description:
-      "An Obsidian × Discord workspace with 393 tests, StudyAI, the PRISME workbench, a template catalogue and this portfolio's first version.",
+      "The first workspace (an Obsidian vault run from Discord, 393 tests), StudyAI, the PRISME workbench, a template catalogue and this portfolio's first version.",
     area: "software",
-    projectSlugs: ["obsidian-discord", "studyai", "prisme", "templates-web"],
+    projectSlugs: ["workspace", "studyai", "prisme", "templates-web"],
     technologies: ["Python", "TypeScript", "JavaScript"],
   },
   {
@@ -100,9 +100,9 @@ export const TIMELINE: TimelineEvent[] = [
     month: "Nov",
     title: "Client work",
     description:
-      "ONDE, a music streaming prototype, and the takeover of an internal platform under NDA.",
+      "ONDE, a music streaming prototype, and an internal platform taken over under NDA — now in active development. Plus a plugin, skills and memory built around my own AI assistant.",
     area: "software",
-    projectSlugs: ["onde", "platform-takeover"],
+    projectSlugs: ["onde", "capsa", "claude-optimisation"],
   },
 ];
 

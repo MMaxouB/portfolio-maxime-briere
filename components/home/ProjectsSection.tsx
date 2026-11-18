@@ -35,7 +35,7 @@ export function ProjectsSection({ projects }: { projects: Project[] }) {
           id="projects-title"
           align="center"
           lines={["Built for real,", <Em key="em">tested for worse.</Em>]}
-          description="Six I would show first. Each card runs a tiny live sketch of the idea — hover one to start it."
+          description="The ones I would show first. Each card runs a tiny live sketch of the idea — hover one to start it."
         />
 
         <div className="mt-10">

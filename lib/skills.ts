@@ -50,7 +50,7 @@ export const SKILLS: Skill[] = [
     description:
       "My main language: APIs, automation, scanners, bots, simulations and crypto experiments.",
     mark: { brand: "python" },
-    projectSlugs: ["ai-video-editor", "futur", "studyai", "obsidian-discord", "crypto-python", "ctf-labs"],
+    projectSlugs: ["ai-video-editor", "futur", "studyai", "workspace", "crypto-python", "ctf-labs"],
   },
   {
     slug: "typescript",
@@ -102,7 +102,7 @@ export const SKILLS: Skill[] = [
     levelLabel: "Advanced",
     description: "API contracts, job queues, data models and the failure paths around them.",
     mark: { glyph: "server" },
-    projectSlugs: ["ai-video-editor", "futur", "studyai", "obsidian-discord"],
+    projectSlugs: ["ai-video-editor", "futur", "studyai", "workspace"],
   },
   {
     slug: "fastapi",
@@ -112,7 +112,7 @@ export const SKILLS: Skill[] = [
     levelLabel: "Advanced",
     description: "Typed endpoints with an OpenAPI contract shared with the front end.",
     mark: { brand: "fastapi" },
-    projectSlugs: ["ai-video-editor", "studyai", "platform-takeover"],
+    projectSlugs: ["ai-video-editor", "studyai", "capsa"],
   },
   {
     slug: "software-architecture",
@@ -122,7 +122,7 @@ export const SKILLS: Skill[] = [
     levelLabel: "Proficient",
     description: "Clear boundaries, written before the code, and checked once the code exists.",
     mark: { glyph: "layers" },
-    projectSlugs: ["ai-video-editor", "obsidian-discord", "templates-web", "platform-takeover"],
+    projectSlugs: ["ai-video-editor", "workspace", "templates-web", "capsa"],
   },
   {
     slug: "postgresql",
@@ -218,7 +218,7 @@ export const SKILLS: Skill[] = [
     levelLabel: "Advanced",
     description: "Branches, pull requests and history worth reading.",
     mark: { brand: "git" },
-    projectSlugs: ["ai-video-editor", "obsidian-discord", "templates-web"],
+    projectSlugs: ["ai-video-editor", "workspace", "templates-web"],
   },
   {
     slug: "automation",
@@ -228,7 +228,7 @@ export const SKILLS: Skill[] = [
     levelLabel: "Advanced",
     description: "Bots, pipelines and measuring tools that do the boring part for me.",
     mark: { glyph: "workflow" },
-    projectSlugs: ["agent-orchestrator", "obsidian-discord", "templates-web"],
+    projectSlugs: ["agent-orchestrator", "workspace", "templates-web", "claude-optimisation"],
   },
   {
     slug: "playwright",
@@ -236,7 +236,7 @@ export const SKILLS: Skill[] = [
     category: "tools",
     score: 72, // v2
     levelLabel: "Proficient",
-    description: "Driving real browsers — three AI chats at once.",
+    description: "Driving real browsers to automate and test web pages.",
     mark: { glyph: "globe" },
     projectSlugs: ["agent-orchestrator"],
   },
@@ -250,7 +250,7 @@ export const SKILLS: Skill[] = [
     levelLabel: "Advanced",
     description: "Kali is my daily OS: shell, permissions, processes, services.",
     mark: { brand: "kalilinux" },
-    projectSlugs: ["ctf-labs", "obsidian-discord"],
+    projectSlugs: ["ctf-labs", "workspace"],
   },
   {
     slug: "web-security",

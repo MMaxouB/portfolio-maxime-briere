@@ -64,7 +64,7 @@ export interface DeepPage {
 }
 
 export const DEEP_PAGES: DeepPage[] = [
-  { label: "All projects", href: "/projects", blurb: "11 projects with filters, public and private", icon: "projects" },
+  { label: "All projects", href: "/projects", blurb: "Every project, with filters — public, private and NDA", icon: "projects" },
   { label: "Skills in detail", href: "/expertise", blurb: "Every skill, its level, and the projects behind it", icon: "skills" },
   { label: "Timeline", href: "/timeline", blurb: "From first Python scripts to today, in order", icon: "timeline" },
   { label: "Cyber lab", href: "/cyber", blurb: "HackTheBox, method sheets, security practice", icon: "cyber" },
