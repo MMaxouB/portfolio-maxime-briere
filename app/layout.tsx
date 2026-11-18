@@ -10,6 +10,7 @@ import { SkyBackground } from "@/components/layout/SkyBackground";
 import { Cursor } from "@/components/cursor/Cursor";
 import { SITE } from "@/lib/site";
 import { MOTION_BOOT_SCRIPT } from "@/lib/ambient-motion";
+import { Analytics } from "@vercel/analytics/next";
 
 // Variable font: one file covers every weight we use (600–800)
 const bricolage = Bricolage_Grotesque({
@@ -97,6 +98,7 @@ export default function RootLayout({
           <Terminal />
         </AppProviders>
         <Cursor />
+        <Analytics />
       </body>
     </html>
   );
