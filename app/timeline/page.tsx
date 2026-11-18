@@ -1,42 +1,48 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import { TIMELINE, AREA_LABELS, AREA_MARKS } from "@/lib/timeline";
-import { Timeline } from "@/components/timeline/Timeline";
-import { SectionHeading } from "@/components/ui/SectionHeading";
+import { getProjects } from "@/lib/projects";
+import { TimelineView } from "@/components/timeline/TimelineView";
+import { SectionHeader, Em } from "@/components/ui/SectionHeader";
 
 export const metadata: Metadata = {
   title: "Timeline",
-  description:
-    "A progression through learning, engineering projects, security work and AI systems.",
+  description: "From first Python scripts to co-owning an AI product: real milestones, in order.",
+  alternates: { canonical: "/timeline" },
 };
 
 export default function TimelinePage() {
-  const years = [...new Set(TIMELINE.map((event) => event.year))].sort();
+  const projectTitles = Object.fromEntries(getProjects().map((p) => [p.slug, p.title]));
+  const years = [...new Set(TIMELINE.map((event) => event.year))];
 
   return (
-    <div className="container mx-auto min-h-screen max-w-4xl px-6 py-28">
-      <SectionHeading
-        as="h1"
-        index="03"
-        label="Progression"
-        title="How it got here."
-        annotation={`${years[0]} — ${years[years.length - 1]}`}
-        description="From my first scripts to system architecture and security — a record of real milestones, not a polished résumé."
-        className="mb-16"
-      />
-
-      {/* Legend — marks, not colours */}
-      <div className="mb-16 flex flex-wrap gap-x-8 gap-y-3 border-y border-border-subtle py-4">
-        {(Object.entries(AREA_LABELS) as [keyof typeof AREA_LABELS, string][]).map(
-          ([area, label]) => (
-            <div key={area} className="flex items-center gap-2.5">
-              <span className={`h-2 w-2 ${AREA_MARKS[area]}`} aria-hidden="true" />
-              <span className="title-block">{label}</span>
-            </div>
-          )
-        )}
+    <div className="relative isolate overflow-hidden pb-24 pt-32 sm:pt-40">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
+        <div
+          className="absolute -right-[10%] top-0 h-[60%] w-[60%]"
+          style={{ background: "radial-gradient(closest-side, rgba(124,92,255,0.16), transparent)" }}
+        />
       </div>
+      <div className="mx-auto max-w-[1000px] px-5 sm:px-8">
+        <SectionHeader
+          as="h1"
+          path="~/git log --reverse"
+          lines={["How it", <Em key="em">got here.</Em>]}
+          description={`${years[0]} to ${years[years.length - 1]}: scripts, then systems, then products — and security all along. A record, not a polished résumé.`}
+        />
 
-      <Timeline events={TIMELINE} />
+        <ul aria-label="Legend" className="mt-10 flex flex-wrap gap-x-6 gap-y-2 text-[13px] text-ink-2">
+          {(Object.entries(AREA_LABELS) as [keyof typeof AREA_LABELS, string][]).map(([area, label]) => (
+            <li key={area} className="flex items-center gap-2">
+              <span aria-hidden="true" className={`h-2.5 w-2.5 rounded-[3px] ${AREA_MARKS[area]}`} />
+              {label}
+            </li>
+          ))}
+        </ul>
+
+        <div className="mt-14">
+          <TimelineView events={TIMELINE} projectTitles={projectTitles} />
+        </div>
+      </div>
     </div>
   );
 }

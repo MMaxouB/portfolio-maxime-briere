@@ -1,15 +1,39 @@
 import { ImageResponse } from "next/og";
 import { SITE } from "@/lib/site";
 
-export const alt = `${SITE.name} — ${SITE.role}`;
+export const alt = `${SITE.name} — builds software and learns how it breaks`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-/**
- * Generated at build time. Uses the site's own palette so a shared link looks
- * like the site rather than a generic card.
- */
+/** The hero's Lorenz attractor, integrated once at build time and drawn as a path. */
+function lorenzPath(): string {
+  const sigma = 10;
+  const rho = 28;
+  const beta = 8 / 3;
+  let [x, y, z] = [0.1, 0, 0];
+  const dt = 0.008;
+  const points: string[] = [];
+  const theta = -Math.PI / 4;
+  const ct = Math.cos(theta);
+  const st = Math.sin(theta);
+  for (let i = 0; i < 5200; i++) {
+    const dx = sigma * (y - x);
+    const dy = x * (rho - z) - y;
+    const dz = x * y - beta * z;
+    x += dx * dt;
+    y += dy * dt;
+    z += dz * dt;
+    if (i < 300 || i % 2) continue;
+    const X = x * ct - y * st;
+    const px = 880 + X * 10.5;
+    const py = 330 - (z - 25) * 8.6;
+    points.push(`${points.length ? "L" : "M"}${px.toFixed(1)} ${py.toFixed(1)}`);
+  }
+  return points.join(" ");
+}
+
 export default function OpengraphImage() {
+  const d = lorenzPath();
   return new ImageResponse(
     (
       <div
@@ -17,68 +41,32 @@ export default function OpengraphImage() {
           width: "100%",
           height: "100%",
           display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          background: "#08090B",
+          position: "relative",
+          background: "#06040f",
           backgroundImage:
-            "radial-gradient(circle at 78% 22%, rgba(106,114,232,0.20) 0%, transparent 55%)",
-          padding: 80,
+            "radial-gradient(circle at 75% 45%, rgba(124,92,255,0.32) 0%, transparent 52%), radial-gradient(circle at 10% 0%, rgba(40,26,110,0.6) 0%, transparent 50%)",
           fontFamily: "sans-serif",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <div
-            style={{
-              width: 10,
-              height: 10,
-              borderRadius: 999,
-              background: "#6a72e8",
-            }}
-          />
-          <div
-            style={{
-              color: "#6F7681",
-              fontSize: 24,
-              letterSpacing: 6,
-              textTransform: "uppercase",
-            }}
-          >
-            {SITE.tagline}
-          </div>
-        </div>
+        <svg width="1200" height="630" viewBox="0 0 1200 630" style={{ position: "absolute", left: 0, top: 0 }}>
+          <path d={d} fill="none" stroke="#8b6cff" strokeOpacity="0.55" strokeWidth="1.3" />
+          <circle cx="880" cy="330" r="2" fill="#ffffff" />
+        </svg>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-          {/* Satori needs one text node per element, hence the split lines. */}
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              color: "#F5F7FA",
-              fontSize: 92,
-              fontWeight: 700,
-              letterSpacing: -3,
-              lineHeight: 1.05,
-            }}
-          >
-            <div style={{ display: "flex" }}>Building software</div>
-            <div style={{ display: "flex" }}>that matters.</div>
+        <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", padding: "0 80px", gap: 18 }}>
+          <div style={{ display: "flex", color: "#c4b5ff", fontSize: 28, fontFamily: "monospace" }}>$ whoami</div>
+          <div style={{ display: "flex", color: "#f1edff", fontSize: 150, fontWeight: 800, letterSpacing: -7, lineHeight: 0.95 }}>
+            {SITE.name}
           </div>
-          <div style={{ display: "flex", color: "#A1A7B0", fontSize: 30 }}>
-            {`${SITE.name} — ${SITE.role}`}
+          <div style={{ display: "flex", flexDirection: "column", color: "#eeebff", fontSize: 46, fontWeight: 700, letterSpacing: -1.5, lineHeight: 1.08 }}>
+            <div style={{ display: "flex" }}>I build software</div>
+            <div style={{ display: "flex" }}>
+              and learn how it&nbsp;<span style={{ color: "#9d86ff" }}>breaks.</span>
+            </div>
           </div>
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 12,
-            color: "#6F7681",
-            fontSize: 24,
-          }}
-        >
-          <span style={{ color: "#6a72e8" }}>$</span>
-          <span>type &quot;help&quot; to explore</span>
+          <div style={{ display: "flex", color: "#aaa4ca", fontSize: 24, marginTop: 14 }}>
+            Backend · AI tools · Security — Python &amp; TypeScript
+          </div>
         </div>
       </div>
     ),

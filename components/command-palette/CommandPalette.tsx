@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { Search, X } from "lucide-react";
+import { Search } from "lucide-react";
 import { COMMANDS, Command, CommandAction, CommandGroup } from "@/lib/commands";
 import { searchCommands } from "@/lib/search";
 import { isExternalHref } from "@/lib/navigation";
@@ -128,7 +128,7 @@ export function CommandPalette() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
             onClick={closePalette}
-            className="fixed inset-0 z-[100] bg-bg-primary/70 backdrop-blur-sm"
+            className="fixed inset-0 z-[100] bg-night/70 backdrop-blur-md"
             aria-hidden="true"
           />
 
@@ -144,11 +144,11 @@ export function CommandPalette() {
             animate="visible"
             exit="exit"
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-x-4 top-[20vh] z-[101] mx-auto max-w-xl overflow-hidden rounded-xl border border-border-subtle bg-surface shadow-2xl"
+            className="fixed inset-x-4 top-[16vh] z-[101] mx-auto max-w-xl overflow-hidden rounded-[22px] border border-line-strong bg-deep/90 shadow-[0_40px_120px_-30px_rgba(91,76,200,0.75)] backdrop-blur-2xl"
           >
             {/* Search input */}
-            <div className="flex items-center gap-3 border-b border-border-subtle px-4">
-              <Search size={16} className="shrink-0 text-text-muted" aria-hidden="true" />
+            <div className="flex items-center gap-3 border-b border-line px-5">
+              <Search size={17} className="shrink-0 text-lilac" aria-hidden="true" />
               <input
                 ref={inputRef}
                 value={query}
@@ -159,7 +159,7 @@ export function CommandPalette() {
                 onKeyDown={onKeyDown}
                 placeholder="Search pages, projects, technologies…"
                 // text-base below the md breakpoint keeps iOS Safari from zooming on focus
-                className="h-12 flex-1 bg-transparent text-base text-text-primary outline-none placeholder:text-text-muted md:text-sm"
+                className="h-14 flex-1 bg-transparent text-base text-ink outline-none placeholder:text-ink-3 md:text-[15px]"
                 autoComplete="off"
                 spellCheck={false}
                 role="combobox"
@@ -173,10 +173,10 @@ export function CommandPalette() {
               />
               <button
                 onClick={closePalette}
-                className="shrink-0 rounded p-1 text-text-muted transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                className="shrink-0 rounded-full border border-line-strong px-2 py-1 font-mono text-[10px] text-ink-3 transition-colors hover:text-ink"
                 aria-label="Close command palette"
               >
-                <X size={14} aria-hidden="true" />
+                esc
               </button>
             </div>
 
@@ -186,10 +186,10 @@ export function CommandPalette() {
               id="palette-list"
               role="listbox"
               aria-label="Commands"
-              className="max-h-80 overflow-y-auto overscroll-contain py-2"
+              className="max-h-[22rem] overflow-y-auto overscroll-contain py-2"
             >
               {results.length === 0 && (
-                <li className="px-4 py-8 text-center text-sm text-text-muted">
+                <li className="px-4 py-10 text-center text-sm text-ink-3">
                   No results for &ldquo;{query}&rdquo;
                 </li>
               )}
@@ -198,7 +198,7 @@ export function CommandPalette() {
                 <li key={group} role="presentation">
                   <p
                     id={`palette-group-${group}`}
-                    className="px-4 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-text-muted"
+                    className="px-5 pb-1.5 pt-3 font-mono text-[11px] text-ink-3"
                   >
                     {GROUP_LABELS[group]}
                   </p>
@@ -214,10 +214,10 @@ export function CommandPalette() {
                           data-index={index}
                           onClick={() => executeAction(command.action)}
                           onMouseMove={() => setActiveIndex(index)}
-                          className={`mx-2 flex cursor-pointer items-center justify-between gap-4 rounded-lg px-3 py-2.5 transition-colors ${
+                          className={`mx-2 flex cursor-pointer items-center justify-between gap-4 rounded-xl px-3 py-2.5 transition-colors ${
                             isActive
-                              ? "bg-accent/10 text-text-primary"
-                              : "text-text-secondary hover:text-text-primary"
+                              ? "bg-violet/20 text-ink shadow-[inset_0_0_0_1px_rgba(196,181,255,0.25)]"
+                              : "text-ink-2 hover:text-ink"
                           }`}
                         >
                           <span className="truncate text-sm font-medium">
@@ -225,12 +225,12 @@ export function CommandPalette() {
                           </span>
                           <div className="flex shrink-0 items-center gap-3">
                             {command.description && (
-                              <span className="hidden text-xs text-text-muted sm:block">
+                              <span className="hidden text-xs text-ink-3 sm:block">
                                 {command.description}
                               </span>
                             )}
                             {command.hint && (
-                              <span className="rounded border border-border-subtle px-1.5 py-0.5 font-mono text-[10px] text-text-muted">
+                              <span className="rounded-full border border-line-strong px-2 py-0.5 font-mono text-[10px] text-ink-3">
                                 {command.hint}
                               </span>
                             )}
@@ -244,7 +244,7 @@ export function CommandPalette() {
             </ul>
 
             {/* Footer hint */}
-            <div className="flex items-center gap-4 border-t border-border-subtle px-4 py-2 font-mono text-[10px] text-text-muted">
+            <div className="flex items-center gap-4 border-t border-line px-5 py-2.5 font-mono text-[10.5px] text-ink-3">
               <span>
                 <kbd>↑↓</kbd> navigate
               </span>

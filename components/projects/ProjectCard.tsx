@@ -1,123 +1,78 @@
 import { ViewTransition } from "react";
 import Link from "next/link";
-import { Project } from "@/lib/projects";
-import { Plate } from "@/components/ui/Plate";
-import { ProjectFigure } from "./visuals/figures";
-import { cn } from "@/components/ui/Button";
+import { ArrowUpRight, Lock } from "lucide-react";
+import { PRIVACY_LABELS, STATUS_LABELS, type Project } from "@/lib/projects";
+import { MiniVisual } from "./visuals/MiniVisual";
 
 interface ProjectCardProps {
   project: Project;
-  /** Enumerated position in the grid, rendered in the plate's title block */
-  index: number;
-  /** Full-width lead card: figure on the left, content on the right */
-  featuredMode?: boolean;
+  /** Headings level inside the card — h3 on the home page */
+  headingLevel?: "h2" | "h3";
 }
 
-const TYPE_LABEL: Record<Project["type"], string> = {
-  "open-source": "Open Source",
-  public: "Public",
-  private: "Private",
-  nda: "NDA",
-};
+/**
+ * One project: a live mini diagram on top, then what it is. The whole card is
+ * the link; the cursor says "Open". On hover the card lifts, the border catches
+ * the pointer's light and the diagram starts running.
+ */
+export function ProjectCard({ project, headingLevel = "h3" }: ProjectCardProps) {
+  const Heading = headingLevel;
+  const confidential = project.type === "private" || project.type === "nda";
+  const chips = [...project.category, ...project.technologies.slice(0, 2)].slice(0, 3);
 
-export function ProjectCard({
-  project,
-  index,
-  featuredMode = false,
-}: ProjectCardProps) {
   return (
     <Link
       href={`/projects/${project.slug}`}
-      className="group block h-full rounded-plate outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg-primary"
+      data-cursor="Open"
+      className="group glass lit flex h-full flex-col overflow-hidden !rounded-[22px] transition-[transform,box-shadow,border-color] duration-500 ease-[var(--ease-out)] hover:-translate-y-1.5 hover:border-line-strong hover:shadow-[0_30px_80px_-30px_rgba(91,76,200,0.6)]"
     >
-      <Plate
-        interactive
-        index={String(index).padStart(2, "0")}
-        className={cn(
-          "flex h-full flex-col overflow-hidden",
-          featuredMode && "md:flex-row"
-        )}
-      >
-        {/* Figure — the drawing, not a placeholder block */}
-        <div
-          className={cn(
-            "relative flex shrink-0 items-center justify-center border-border-subtle bg-bg-primary/60 p-4",
-            featuredMode
-              ? "border-b md:w-[55%] md:border-b-0 md:border-r"
-              : "border-b"
+      <div className="relative aspect-[16/10] overflow-hidden border-b border-line">
+        {/* Morphs into the case study's hero visual on navigation */}
+        <ViewTransition name={`visual-${project.slug}`}>
+          <div className="absolute inset-0 transition-transform duration-700 ease-[var(--ease-out)] group-hover:scale-[1.04]">
+            <MiniVisual kind={project.visual} uid={project.slug} />
+          </div>
+        </ViewTransition>
+        <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
+          <span className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-night/70 px-2.5 py-1 text-[11px] font-medium text-ink backdrop-blur-md">
+            {confidential && <Lock size={10} aria-hidden="true" />}
+            {PRIVACY_LABELS[project.type]}
+          </span>
+          {project.status !== "completed" && (
+            <span className="rounded-full border border-white/10 bg-night/60 px-2.5 py-1 text-[11px] text-ink-2 backdrop-blur-md">
+              {STATUS_LABELS[project.status]}
+            </span>
           )}
-        >
-          {/* Faint ruled backing, so the figure sits on paper */}
-          <div
+        </div>
+        <span className="absolute right-3 top-3 rounded-full bg-night/60 px-2 py-1 font-mono text-[11px] text-ink-2 backdrop-blur-md">
+          {project.year}
+        </span>
+      </div>
+
+      <div className="flex flex-1 flex-col p-5 sm:p-6">
+        <ul className="flex flex-wrap gap-1.5" aria-label="Tags">
+          {chips.map((chip) => (
+            <li key={chip} className="chip">
+              {chip}
+            </li>
+          ))}
+        </ul>
+        <Heading className="font-display mt-4 text-[1.45rem] font-bold leading-tight tracking-[-0.025em] text-ink">
+          {project.title}
+        </Heading>
+        <p className="mt-2.5 text-[15px] leading-relaxed text-ink-2">{project.shortDescription}</p>
+        <div className="mt-auto flex items-center justify-between pt-6">
+          <span className="text-[15px] font-medium text-lilac transition-colors group-hover:text-ink">
+            Read the case study
+          </span>
+          <span
             aria-hidden="true"
-            className="paper-rules absolute inset-0 opacity-60 [mask-image:radial-gradient(ellipse_70%_70%_at_50%_50%,#000,transparent)]"
-          />
-          <ViewTransition name={`figure-${project.slug}`}>
-            <div className="relative w-full">
-              <ProjectFigure
-                slug={project.slug}
-                className={cn(
-                  "w-full transition-opacity duration-500 [&_text]:transition-colors",
-                  featuredMode ? "max-h-[280px]" : "max-h-[190px]"
-                )}
-              />
-            </div>
-          </ViewTransition>
-        </div>
-
-        {/* Content */}
-        <div
-          className={cn(
-            "flex flex-1 flex-col p-6",
-            featuredMode && "md:w-[45%] md:justify-center md:p-8"
-          )}
-        >
-          {/* Title block strip */}
-          <div className="mb-5 flex items-center gap-3">
-            <span className="title-block text-accent">
-              {TYPE_LABEL[project.type]}
-            </span>
-            <span className="h-px flex-1 bg-border-subtle" aria-hidden="true" />
-            <span className="title-block tabular-nums">{project.year}</span>
-          </div>
-
-          <h3
-            className={cn(
-              "font-semibold tracking-[-0.02em] text-text-primary",
-              featuredMode ? "text-2xl md:text-3xl" : "text-xl"
-            )}
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-line-strong text-ink-2 transition-all duration-500 ease-[var(--ease-spring)] group-hover:rotate-45 group-hover:border-lilac group-hover:bg-violet/25 group-hover:text-ink"
           >
-            {project.title}
-          </h3>
-
-          <p className="mt-3 flex-1 text-sm leading-relaxed text-text-secondary">
-            {project.shortDescription}
-          </p>
-
-          {/* Tags — nature of the project only (§5.6) */}
-          <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2">
-            {project.category.map((tag) => (
-              <span key={tag} className="title-block text-text-muted">
-                {tag}
-              </span>
-            ))}
-          </div>
-
-          {/* Footer: role, and a CTA that draws itself in on hover (§5.5) */}
-          <div className="mt-6 flex items-end justify-between gap-4 border-t border-border-subtle pt-4">
-            <span className="title-block">{project.role}</span>
-            <span className="flex items-center gap-2 overflow-hidden">
-              <span className="title-block text-accent opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                View project
-              </span>
-              <span
-                aria-hidden="true"
-                className="h-px w-0 bg-accent transition-all duration-500 ease-out group-hover:w-6"
-              />
-            </span>
-          </div>
+            <ArrowUpRight size={17} />
+          </span>
         </div>
-      </Plate>
+      </div>
     </Link>
   );
 }

@@ -8,6 +8,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import { MotionConfig } from "motion/react";
 
 interface AppContextValue {
   paletteOpen: boolean;
@@ -75,5 +76,10 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
     [overlay, openPalette, closePalette, openTerminal, closeTerminal]
   );
 
-  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
+  return (
+    <AppContext.Provider value={value}>
+      {/* Motion follows the OS: reduced motion drops transforms and layout moves */}
+      <MotionConfig reducedMotion="user">{children}</MotionConfig>
+    </AppContext.Provider>
+  );
 }

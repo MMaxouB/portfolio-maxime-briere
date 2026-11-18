@@ -1,6 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { Search } from "lucide-react";
 import { useApp } from "@/providers/AppProviders";
 
 /** The platform never changes at runtime, so there is nothing to subscribe to. */
@@ -15,13 +16,15 @@ export function PaletteButton() {
 
   return (
     <button
+      type="button"
       onClick={openPalette}
-      aria-label={`Open command palette (${modifier} K)`}
-      className="hidden items-center gap-2 rounded-md border border-border-subtle bg-surface px-3 py-1.5 font-mono text-xs text-text-muted transition-all hover:border-border-hover hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent md:flex"
+      aria-label={`Search the site (${modifier} K)`}
+      className="hidden items-center gap-2 rounded-full border border-line-strong bg-deep/50 py-1.5 pl-3 pr-1.5 text-xs text-ink-3 transition-colors hover:border-lilac/50 hover:text-ink lg:flex"
     >
+      <Search size={13} aria-hidden="true" />
       <span>Search</span>
-      <kbd className="rounded border border-border-hover px-1 py-0.5 text-[10px] leading-none">
-        {modifier}K
+      <kbd className="rounded-full border border-line-strong bg-night/60 px-2 py-0.5 font-mono text-[10px] leading-none text-ink-2">
+        {modifier} K
       </kbd>
     </button>
   );

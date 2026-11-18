@@ -1,22 +1,22 @@
 "use client";
 
+import { SquareTerminal } from "lucide-react";
 import { useApp } from "@/providers/AppProviders";
 
+/** The footer's door to the terminal easter egg (spec §13.2). */
 export function TerminalHint() {
   const { openTerminal } = useApp();
   return (
     <button
+      type="button"
       onClick={openTerminal}
-      aria-label="Open terminal"
-      className="group flex items-center gap-3 rounded text-left transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+      className="group inline-flex items-center gap-2.5 rounded-xl border border-dashed border-line-strong px-3.5 py-2.5 font-mono text-[12.5px] text-ink-2 transition-colors hover:border-lilac hover:text-ink"
     >
-      <span className="title-block normal-case tracking-[0.1em] text-text-muted transition-colors group-hover:text-accent">
-        $ type &quot;help&quot; to explore
+      <SquareTerminal size={15} className="text-lilac" aria-hidden="true" />
+      <span>
+        $ type <span className="text-lilac">help</span> to explore
       </span>
-      <span
-        aria-hidden="true"
-        className="h-px w-6 bg-border-hover transition-all duration-500 ease-out group-hover:w-14 group-hover:bg-accent-dim"
-      />
+      <span aria-hidden="true" className="caret -ml-1 opacity-0 transition-opacity group-hover:opacity-100" />
     </button>
   );
 }

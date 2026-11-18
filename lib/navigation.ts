@@ -12,6 +12,18 @@ export const MAIN_NAV: NavItem[] = [
   { label: "About", href: "/about" },
 ];
 
+/**
+ * In-page anchors of the home page, in scroll order — the top nav and the
+ * scroll-spy read these. Ids must match the <section id> on app/page.tsx.
+ */
+export const HOME_SECTIONS: { label: string; id: string }[] = [
+  { label: "Home", id: "top" },
+  { label: "About", id: "about" },
+  { label: "Projects", id: "projects" },
+  { label: "Toolbox", id: "toolbox" },
+  { label: "Contact", id: "contact" },
+];
+
 /** Every page the site owns, in navigation order — used by `ls` and the sitemap. */
 export const ALL_ROUTES: string[] = [
   "/",

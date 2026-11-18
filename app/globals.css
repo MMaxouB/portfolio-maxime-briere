@@ -1,177 +1,658 @@
 @import "tailwindcss";
 
 /* ===========================================================================
-   Design tokens
+   Night — design tokens (v2)
    ---------------------------------------------------------------------------
-   Surfaces and text follow PORTFOLIO_SPEC §1.2 verbatim. The accent is the one
-   free variable the spec leaves open — a cold, deep blue-violet (per client
-   direction, 2026-08-19). The rule that governs it is unchanged: it is INK,
-   never PAINT. Hairlines, marks, carets, traces. No filled accent surfaces
-   anywhere in the UI.
+   One night sky, one violet family. Lamp amber exists for the skyline's
+   windows only — it is illustration, never UI. Signal green is the
+   availability dot and nothing else.
    =========================================================================== */
 
 :root {
-  --color-bg-primary: #08090b;
-  --color-bg-secondary: #0b0d10;
-  --color-surface: #101216;
-  --color-surface-hover: #14171c;
-  --color-border-subtle: rgba(255, 255, 255, 0.06);
-  --color-border-hover: rgba(255, 255, 255, 0.12);
-  --color-text-primary: #f5f7fa;
-  --color-text-secondary: #a1a7b0;
-  --color-text-muted: #6f7681;
+  --night: #06040f;
+  --deep: #0d0a1f;
+  --deep-2: #141030;
+  --glass: rgba(19, 15, 42, 0.58);
+  --glass-strong: rgba(24, 19, 54, 0.78);
+  --line: rgba(185, 166, 255, 0.12);
+  --line-strong: rgba(185, 166, 255, 0.26);
 
-  /* Deep blue-violet ink — one family, three stops, no second hue (§1.2) */
-  --color-accent: #6a72e8;
-  --color-accent-dim: #363b70;
-  --color-accent-wash: rgba(106, 114, 232, 0.12);
+  --ink: #eeebff;
+  --ink-2: #aaa4ca;
+  --ink-3: #736d96;
 
-  /* Two radii for the whole site (§1.5) — plates and controls. Dots use full. */
-  --radius-plate: 10px;
-  --radius-control: 6px;
+  --violet: #8b6cff;
+  --lilac: #c4b5ff;
+  --indigo: #5b6cff;
+  --signal: #5ee9b5;
+  --lamp: #ffb86b;
 
-  /* Vertical rhythm the ledger rules are drawn on */
-  --rule-pitch: 28px;
+  --radius-control: 12px;
+  --radius-card: 20px;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 @theme inline {
-  --color-background: var(--color-bg-primary);
-  --color-foreground: var(--color-text-primary);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-night: var(--night);
+  --color-deep: var(--deep);
+  --color-deep-2: var(--deep-2);
+  --color-glass: var(--glass);
+  --color-glass-strong: var(--glass-strong);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-violet: var(--violet);
+  --color-lilac: var(--lilac);
+  --color-indigo: var(--indigo);
+  --color-signal: var(--signal);
+  --color-lamp: var(--lamp);
 
-  --color-bg-primary: var(--color-bg-primary);
-  --color-bg-secondary: var(--color-bg-secondary);
-  --color-surface: var(--color-surface);
-  --color-surface-hover: var(--color-surface-hover);
-  --color-border-subtle: var(--color-border-subtle);
-  --color-border-hover: var(--color-border-hover);
-  --color-text-primary: var(--color-text-primary);
-  --color-text-secondary: var(--color-text-secondary);
-  --color-text-muted: var(--color-text-muted);
-  --color-accent: var(--color-accent);
-  --color-accent-dim: var(--color-accent-dim);
-  --color-accent-wash: var(--color-accent-wash);
+  /* v1 names, aliased so nothing renders unstyled while pages migrate */
+  --color-background: var(--night);
+  --color-foreground: var(--ink);
+  --color-bg-primary: var(--night);
+  --color-bg-secondary: var(--deep);
+  --color-surface: var(--deep);
+  --color-surface-hover: var(--deep-2);
+  --color-border-subtle: var(--line);
+  --color-border-hover: var(--line-strong);
+  --color-text-primary: var(--ink);
+  --color-text-secondary: var(--ink-2);
+  --color-text-muted: var(--ink-3);
+  --color-accent: var(--violet);
+  --color-accent-dim: #3a2f7a;
+  --color-accent-wash: rgba(139, 108, 255, 0.12);
 
-  --radius-plate: var(--radius-plate);
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-display: var(--font-bricolage), var(--font-geist), sans-serif;
+  --font-hand: var(--font-kalam), cursive;
+
   --radius-control: var(--radius-control);
+  --radius-card: var(--radius-card);
+  --radius-plate: var(--radius-card);
+
+  --ease-out: var(--ease-out);
+}
+
+html {
+  background-color: var(--night);
+  color-scheme: dark;
+  scroll-behavior: smooth;
+  scroll-padding-top: 88px;
 }
 
 body {
-  background-color: var(--color-background);
-  color: var(--color-foreground);
-  font-family: var(--font-sans), sans-serif;
+  background-color: var(--night);
+  color: var(--ink);
+  font-family: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: rgba(139, 108, 255, 0.35);
+  color: #fff;
+}
+
+:focus-visible {
+  outline: 2px solid var(--lilac);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* Custom cursor: only hide the system cursor once the replacement is live,
+   and only for a mouse. Text fields keep their I-beam. */
+html.has-cursor,
+html.has-cursor * {
+  cursor: none !important;
+}
+html.has-cursor input,
+html.has-cursor textarea,
+html.has-cursor [contenteditable="true"] {
+  cursor: text !important;
 }
 
 /* ---------------------------------------------------------------------------
-   Depth layer (§1.3) — ledger texture, used locally behind schematic figures
-   (ProjectCard, project detail, /cyber) so a figure reads as sitting on paper.
+   Components — MUST stay inside @layer components: unlayered CSS outranks
+   Tailwind utilities in v4 and would silently override them.
    --------------------------------------------------------------------------- */
 
-.paper-rules {
-  background-image: repeating-linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 0.022) 0px,
-    rgba(255, 255, 255, 0.022) 1px,
-    transparent 1px,
-    transparent var(--rule-pitch)
-  );
-}
-
-/* Film grain — one inline turbulence, cheap and static */
 @layer components {
-  .paper-grain {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
-    opacity: 0.019;
+  .font-display {
+    font-family: var(--font-bricolage), var(--font-geist), sans-serif;
+    font-optical-sizing: auto;
+  }
+
+  .font-hand {
+    font-family: var(--font-kalam), cursive;
+  }
+
+  /* Glass panel. --mx/--my are set by the pointer (usePointerLight) so the
+     border catches light where the cursor is. */
+  .glass {
+    position: relative;
+    background: var(--glass);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+    backdrop-filter: blur(14px) saturate(130%);
+    -webkit-backdrop-filter: blur(14px) saturate(130%);
+  }
+
+  .lit {
+    --mx: 50%;
+    --my: -200px;
+  }
+  .lit::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: radial-gradient(
+      260px circle at var(--mx) var(--my),
+      rgba(196, 181, 255, 0.55),
+      rgba(139, 108, 255, 0.16) 40%,
+      transparent 70%
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.35s var(--ease-out);
+  }
+  .lit:hover::before,
+  .lit:focus-within::before {
+    opacity: 1;
+  }
+
+  /* Gradient ink for the one emphasised phrase of a heading */
+  .ink-gradient {
+    background: linear-gradient(100deg, #b6a2ff 0%, #8b6cff 45%, #6a7bff 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* The name: lit from above, like the sky behind it */
+  .name-gradient {
+    background: linear-gradient(180deg, #ffffff 28%, #d6ccff 62%, #a28bff 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .btn-primary {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    border-radius: 14px;
+    padding: 0.95rem 1.5rem;
+    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(100deg, #7c5cff 0%, #5b6cff 100%);
+    box-shadow:
+      0 0 0 1px rgba(196, 181, 255, 0.25) inset,
+      0 10px 40px -10px rgba(124, 92, 255, 0.75);
+    transition:
+      box-shadow 0.3s var(--ease-out),
+      filter 0.3s var(--ease-out);
+  }
+  .btn-primary:hover {
+    filter: brightness(1.08);
+    box-shadow:
+      0 0 0 1px rgba(196, 181, 255, 0.4) inset,
+      0 14px 50px -8px rgba(124, 92, 255, 0.95);
+  }
+
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    border-radius: 14px;
+    padding: 0.95rem 1.5rem;
+    font-weight: 500;
+    color: var(--ink);
+    border: 1px solid var(--line-strong);
+    background: rgba(13, 10, 31, 0.55);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition:
+      border-color 0.3s var(--ease-out),
+      background-color 0.3s var(--ease-out);
+  }
+  .btn-ghost:hover {
+    border-color: rgba(196, 181, 255, 0.5);
+    background: rgba(24, 19, 54, 0.75);
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 999px;
+    border: 1px solid var(--line-strong);
+    background: rgba(13, 10, 31, 0.5);
+    color: var(--ink-2);
+    transition:
+      color 0.25s var(--ease-out),
+      border-color 0.25s var(--ease-out),
+      background-color 0.25s var(--ease-out),
+      box-shadow 0.25s var(--ease-out);
+  }
+  .pill:hover {
+    color: var(--ink);
+    border-color: rgba(196, 181, 255, 0.45);
+  }
+  .pill[aria-pressed="true"],
+  .pill[aria-selected="true"],
+  .pill[data-active="true"] {
+    color: #fff;
+    border-color: rgba(196, 181, 255, 0.7);
+    background: rgba(91, 76, 200, 0.28);
+    box-shadow:
+      0 0 0 1px rgba(139, 108, 255, 0.35) inset,
+      0 0 26px -6px rgba(139, 108, 255, 0.8);
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    border: 1px solid var(--line-strong);
+    padding: 0.28rem 0.7rem;
+    font-size: 0.75rem;
+    line-height: 1.2;
+    color: var(--ink-2);
+    background: rgba(13, 10, 31, 0.45);
+  }
+
+  /* Hairline progress bar used by skill cards */
+  .bar-track {
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(185, 166, 255, 0.12);
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #7c5cff, #9d86ff);
+    transform-origin: left center;
+  }
+
+  /* Film grain over the whole sky — one inline turbulence, static, cheap */
+  .grain {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+    opacity: 0.045;
+    mix-blend-mode: overlay;
+  }
+
+  .caret::after {
+    content: "";
+    display: inline-block;
+    width: 0.55em;
+    height: 1.1em;
+    margin-left: 0.12em;
+    vertical-align: -0.18em;
+    background: var(--lilac);
+    animation: caret-blink 1.05s steps(1) infinite;
   }
 }
 
 /* ---------------------------------------------------------------------------
-   Draw-in primitives (§15.3) — lines extend, text is revealed by a moving mask.
-   Nothing translates upward, which is the tell of a generic entrance.
+   Keyframes
    --------------------------------------------------------------------------- */
 
-@keyframes rule-extend {
+@keyframes caret-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+@keyframes scroll-dot {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(12px);
+    opacity: 0;
+  }
+}
+
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes float-y {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes dash-flow {
+  to {
+    stroke-dashoffset: -400;
+  }
+}
+
+@keyframes window-flicker {
+  0%,
+  100% {
+    opacity: var(--on, 0.9);
+  }
+  48% {
+    opacity: var(--on, 0.9);
+  }
+  50% {
+    opacity: 0.08;
+  }
+  97% {
+    opacity: 0.08;
+  }
+}
+
+/* Global motion pause (button bottom-right) and reduced motion: freeze every
+   CSS animation. Canvas scenes read the same flag in JS. */
+html[data-motion="paused"] *,
+html[data-motion="paused"] *::before,
+html[data-motion="paused"] *::after {
+  animation-play-state: paused !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Cursor states (components/cursor/Cursor.tsx)
+   --------------------------------------------------------------------------- */
+
+.cursor-ring {
+  width: 34px;
+  height: 34px;
+  border: 1.5px solid rgba(196, 181, 255, 0.7);
+  background: transparent;
+  transition:
+    background-color 0.25s var(--ease-out),
+    border-color 0.25s var(--ease-out),
+    opacity 0.2s linear,
+    backdrop-filter 0.25s var(--ease-out);
+  will-change: transform, width, height;
+}
+.cursor-ring[data-mode="link"] {
+  border-color: rgba(196, 181, 255, 0.9);
+  background: rgba(139, 108, 255, 0.14);
+}
+.cursor-ring[data-mode="label"] {
+  border-color: transparent;
+  background: rgba(124, 92, 255, 0.92);
+  box-shadow: 0 10px 40px -8px rgba(124, 92, 255, 0.8);
+}
+.cursor-ring[data-mode="text"],
+.cursor-ring[data-mode="hidden"] {
+  opacity: 0 !important;
+}
+.cursor-label {
+  font-family: var(--font-geist), sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: #fff;
+  white-space: nowrap;
+  opacity: 0;
+  transform: scale(0.6);
+  transition:
+    opacity 0.2s var(--ease-out),
+    transform 0.3s var(--ease-spring);
+}
+.cursor-ring[data-mode="label"] .cursor-label {
+  opacity: 1;
+  transform: scale(1);
+}
+.cursor-dot {
+  background: #fff;
+  box-shadow: 0 0 10px 2px rgba(196, 181, 255, 0.8);
+  transition: opacity 0.2s linear;
+  will-change: transform;
+}
+.cursor-dot[data-mode="link"],
+.cursor-dot[data-mode="label"],
+.cursor-dot[data-mode="text"],
+.cursor-dot[data-mode="hidden"] {
+  opacity: 0 !important;
+}
+
+/* ---------------------------------------------------------------------------
+   Project card mini-visuals (components/projects/visuals)
+   Paused at a composed frame by default; they run while the card is hovered,
+   and always on touch screens (no hover to wait for). The global pause and
+   reduced-motion rules above still win.
+   --------------------------------------------------------------------------- */
+
+.mv {
+  animation-play-state: paused;
+}
+.group:hover .mv,
+.group:focus-visible .mv,
+.mv-live .mv {
+  animation-play-state: running;
+}
+@media (hover: none) {
+  .mv {
+    animation-play-state: running;
+  }
+}
+
+@keyframes mv-playhead {
   from {
-    transform: scaleX(0);
+    transform: translateX(0);
   }
   to {
-    transform: scaleX(1);
+    transform: translateX(316px);
   }
 }
-
-@keyframes mask-reveal {
-  from {
+@keyframes mv-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes mv-pulse {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes mv-flow {
+  to {
+    stroke-dashoffset: -60;
+  }
+}
+@keyframes mv-bounce {
+  0%,
+  100% {
+    transform: scaleY(0.25);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+@keyframes mv-grow {
+  0%,
+  15% {
+    transform: scaleY(0.08);
+  }
+  55%,
+  100% {
+    transform: scaleY(1);
+  }
+}
+@keyframes mv-type {
+  0%,
+  8% {
     clip-path: inset(0 100% 0 0);
   }
-  to {
+  40%,
+  100% {
     clip-path: inset(0 0 0 0);
   }
 }
-
-.animate-rule-extend {
-  transform-origin: left center;
-  animation: rule-extend 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-.animate-mask-reveal {
-  animation: mask-reveal 0.62s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .animate-rule-extend,
-  .animate-mask-reveal {
-    animation: none;
+@keyframes mv-hue {
+  to {
+    filter: hue-rotate(80deg);
   }
 }
-
-/* Mono metadata that sits in a drawing's title block.
-   MUST live in @layer components: unlayered CSS outranks Tailwind's utilities,
-   which would silently defeat every `title-block text-accent` on the site. */
-@layer components {
-  .title-block {
-    font-family: var(--font-mono), monospace;
-    font-size: 11px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--color-text-muted);
+@keyframes mv-step-spin {
+  0%,
+  20% {
+    transform: rotate(0deg);
+  }
+  30%,
+  45% {
+    transform: rotate(-13.85deg);
+  }
+  55%,
+  70% {
+    transform: rotate(-27.7deg);
+  }
+  80%,
+  100% {
+    transform: rotate(-41.5deg);
+  }
+}
+@keyframes mv-slide {
+  0%,
+  25% {
+    transform: translate(0, 0);
+  }
+  33%,
+  58% {
+    transform: translate(120px, 0);
+  }
+  66%,
+  91% {
+    transform: translate(240px, 0);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}
+@keyframes mv-winner {
+  0%,
+  45% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  55%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
 /* ---------------------------------------------------------------------------
-   Schematic figures — a dash travels along the signal path while the plate is
-   hovered. Static otherwise, so a page of five figures is never busy.
+   Toolbox orbit (components/home/Orbit.tsx) — a tilted ring in real 3D.
+   The ring spins; each tile counter-spins and un-tilts so it always faces you.
    --------------------------------------------------------------------------- */
 
-@keyframes trace-flow {
+@keyframes orbit-spin {
+  from {
+    transform: rotateZ(0deg);
+  }
   to {
-    stroke-dashoffset: -32;
+    transform: rotateZ(360deg);
   }
 }
-
-.group:hover .trace-flow {
-  animation: trace-flow 1.4s linear infinite;
-}
-
-@keyframes playhead-sweep {
-  0%,
-  100% {
-    transform: translateX(0);
+@keyframes orbit-counter {
+  from {
+    transform: rotateZ(0deg);
   }
-  50% {
-    transform: translateX(58px);
+  to {
+    transform: rotateZ(-360deg);
   }
 }
-
-.group:hover .playhead-sweep {
-  animation: playhead-sweep 3.6s ease-in-out infinite;
+.orbit-stage {
+  perspective: 1100px;
+}
+.orbit-plane {
+  /* Always square (100cqw), centred in a stage that is wider than tall */
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 100%;
+  height: 100cqw;
+  margin-top: -50cqw;
+  transform-style: preserve-3d;
+  transform: rotateX(62deg) rotateY(-10deg);
+}
+.orbit-ring {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  animation: orbit-spin var(--orbit-duration, 40s) linear infinite;
+}
+.orbit-slot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform-style: preserve-3d;
+}
+.orbit-counter {
+  transform-style: preserve-3d;
+  animation: orbit-counter var(--orbit-duration, 40s) linear infinite;
+}
+.orbit-face {
+  transform: rotateY(10deg) rotateX(-62deg);
+}
+.orbit-stage:hover .orbit-ring,
+.orbit-stage:hover .orbit-counter,
+.orbit-stage:focus-within .orbit-ring,
+.orbit-stage:focus-within .orbit-counter {
+  animation-play-state: paused;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .group:hover .trace-flow,
-  .group:hover .playhead-sweep {
-    animation: none;
-  }
+.mv-beacon {
+  animation: mv-pulse 2.6s ease-in-out infinite;
 }
