@@ -5,53 +5,48 @@ import {
   AdditiveBlending,
   BufferAttribute,
   BufferGeometry,
+  CanvasTexture,
   Color,
   ColorManagement,
-  DoubleSide,
   Group,
   Line,
+  LineBasicMaterial,
   LinearSRGBColorSpace,
   Mesh,
   PerspectiveCamera,
   PlaneGeometry,
-  Points,
-  RingGeometry,
-  MeshBasicMaterial,
+  Raycaster,
   Scene,
   ShaderMaterial,
   SphereGeometry,
+  Sprite,
+  SpriteMaterial,
+  Vector2,
   Vector3,
   WebGLRenderer,
 } from "three";
-import { PLANET_ARCS, PLANET_MARKERS, PLANET_MOONS } from "@/lib/planet";
+import { PLANET_RINGS } from "@/lib/planet";
+import { SKILLS } from "@/lib/skills";
+import { TECH_MARKS } from "@/lib/tech-marks";
+import { readableHex } from "@/lib/tech-color";
 import { ambientMotionOn } from "@/lib/ambient-motion";
 
 /**
- * A procedural 3D planet — no textures, everything is computed in shaders:
- * continents and clouds from noise, a soft terminator, ocean glint, city lights
- * on the night side, an atmosphere. On top: arcs with light travelling along
- * them, pulsing markers, a moon. Drag to spin it (with inertia).
+ * A deliberately simple planet: a dark violet sphere with a lit rim and a halo,
+ * and the skills as icons turning around it on tilted rings. Icons pass in
+ * front of and behind the sphere (real depth). Drag to spin; hover an icon to
+ * read its name, click to open it on /expertise.
  *
- * Colour management is off on purpose: shaders write display colours directly,
- * so the hex values below are exactly what appears on screen.
+ * Colour management is off on purpose: shaders and textures use display colours
+ * directly, so the hex values below are what appears on screen.
  */
 ColorManagement.enabled = false;
 
 const R = 1; // planet radius = 1 scene unit
-const HALF_VIEW = 1.54; // visible half-height, so the sphere is ~65% of the canvas
-const CAM_Z = 5.6;
+const HALF_VIEW = 2.62; // visible half-height: the sphere is ~38% of the canvas
+const CAM_Z = 7;
+/** Sphere radius as a fraction of the canvas half-width (for hit-testing) */
 const SPHERE_FRACTION = R / HALF_VIEW;
-
-const NOISE = /* glsl */ `
-float hash(vec3 p){ p = fract(p * 0.3183099 + 0.1); p *= 17.0; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
-float noise(vec3 x){
-  vec3 i = floor(x); vec3 f = fract(x); f = f * f * (3.0 - 2.0 * f);
-  return mix(mix(mix(hash(i), hash(i + vec3(1,0,0)), f.x), mix(hash(i + vec3(0,1,0)), hash(i + vec3(1,1,0)), f.x), f.y),
-             mix(mix(hash(i + vec3(0,0,1)), hash(i + vec3(1,0,1)), f.x), mix(hash(i + vec3(0,1,1)), hash(i + vec3(1,1,1)), f.x), f.y), f.z);
-}
-float fbm(vec3 p){ float v = 0.0; float a = 0.5; for (int i = 0; i < 5; i++){ v += a * noise(p); p = p * 2.02 + vec3(1.7, 9.2, 3.1); a *= 0.5; } return v; }
-float fbm3(vec3 p){ float v = 0.0; float a = 0.5; for (int i = 0; i < 3; i++){ v += a * noise(p); p = p * 2.02 + vec3(1.7, 9.2, 3.1); a *= 0.5; } return v; }
-`;
 
 const PLANET_VERT = /* glsl */ `
 varying vec3 vObj; varying vec3 vN; varying vec3 vView;
@@ -63,63 +58,22 @@ void main(){
   gl_Position = projectionMatrix * mv;
 }
 `;
-
 const PLANET_FRAG = /* glsl */ `
-uniform float uTime;
-uniform vec3 uLight;
-uniform vec3 uCities[8];
-uniform vec3 uOcean; uniform vec3 uLand; uniform vec3 uLandHi; uniform vec3 uAtmo; uniform vec3 uLamp;
+uniform vec3 uLight; uniform vec3 uDeep; uniform vec3 uMid; uniform vec3 uAtmo;
 varying vec3 vObj; varying vec3 vN; varying vec3 vView;
-${NOISE}
 void main(){
-  vec3 N = normalize(vN);
-  vec3 V = normalize(vView);
-  vec3 L = normalize(uLight);
+  vec3 N = normalize(vN); vec3 V = normalize(vView); vec3 L = normalize(uLight);
   vec3 p = normalize(vObj);
-
-  // Terrain height, lifted around each city so every marker sits on land
-  float h = fbm(p * 2.3 + 3.0);
-  for (int i = 0; i < 8; i++) { h += smoothstep(0.42, 0.0, distance(p, uCities[i])) * 0.2; }
-  float land = smoothstep(0.52, 0.55, h);
-
-  vec3 sea = uOcean * (0.75 + 0.55 * fbm3(p * 7.0));
-  vec3 ground = mix(uLand, uLandHi, smoothstep(0.55, 0.78, h)) * (0.8 + 0.4 * fbm3(p * 9.0));
-  vec3 col = mix(sea, ground, land);
-
-  // Ice caps
-  float cap = smoothstep(0.80, 0.95, abs(p.y) + (h - 0.5) * 0.18);
-  col = mix(col, vec3(0.80, 0.77, 1.0), cap * 0.85);
-
-  // Slow clouds
-  float c = fbm(p * 3.3 + vec3(uTime * 0.010, 0.0, uTime * 0.006));
-  float clouds = smoothstep(0.54, 0.80, c);
-  col = mix(col, vec3(0.86, 0.84, 1.0), clouds * 0.38);
-
-  float ndl = dot(N, L);
-  float day = smoothstep(-0.12, 0.38, ndl);
-  vec3 lit = col * (0.04 + 0.92 * day);
-
-  // Ocean glint
-  vec3 H = normalize(L + V);
-  lit += pow(max(dot(N, H), 0.0), 70.0) * (1.0 - land) * (1.0 - clouds) * 0.55 * day * vec3(0.8, 0.75, 1.0);
-
-  // City lights, on land, on the night side, thinned by clouds
-  float night = 1.0 - smoothstep(-0.06, 0.24, ndl);
-  float density = smoothstep(0.54, 0.74, fbm3(p * 7.0 + 9.0));
-  float dots = step(0.76, noise(p * 95.0));
-  vec3 cityCol = mix(uLamp, vec3(0.78, 0.64, 1.0), step(0.84, noise(p * 31.0)));
-  float lightsOn = land * night * (1.0 - clouds * 0.75);
-  lit += cityCol * dots * density * lightsOn * 1.9;
-  lit += uLamp * density * lightsOn * 0.05;
-
-  // Atmosphere rim, stronger on the lit side
-  float fres = pow(1.0 - max(dot(N, V), 0.0), 3.0);
-  lit += uAtmo * fres * (0.16 + 0.7 * day);
-
-  gl_FragColor = vec4(lit / (1.0 + lit * 0.18), 1.0);
+  float day = smoothstep(-0.2, 0.75, dot(N, L));
+  vec3 col = mix(uDeep, uMid, day);
+  // Soft latitude bands that turn with the planet
+  float band = sin(p.y * 11.0 + sin(p.x * 3.0 + p.z * 2.0) * 0.7) * 0.5 + 0.5;
+  col += uAtmo * band * 0.07 * (0.4 + day);
+  float rim = pow(1.0 - max(dot(N, V), 0.0), 3.0);
+  col += uAtmo * rim * (0.3 + 0.9 * day);
+  gl_FragColor = vec4(col, 1.0);
 }
 `;
-
 const GLOW_VERT = /* glsl */ `
 varying vec2 vUv;
 void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }
@@ -129,104 +83,62 @@ uniform vec3 uColor; uniform vec2 uLight2D; uniform float uHalf;
 varying vec2 vUv;
 void main(){
   vec2 p = (vUv - 0.5) * 2.0;
-  float d = length(p) * uHalf;                  // distance from centre in planet radii
-  float g = pow(smoothstep(1.62, 1.02, d), 2.3);
+  float d = length(p) * uHalf;
+  float g = pow(smoothstep(1.7, 1.02, d), 2.2);
   float side = 0.5 + 0.5 * dot(normalize(p + 1e-5), uLight2D);
-  gl_FragColor = vec4(uColor * g * (0.25 + 0.95 * side), g);
+  gl_FragColor = vec4(uColor * g * (0.3 + 0.9 * side), g);
 }
 `;
 
-const ARC_VERT = /* glsl */ `
-attribute float aT; varying float vT;
-void main(){ vT = aT; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }
-`;
-const ARC_FRAG = /* glsl */ `
-uniform vec3 uColor; uniform float uHead;
-varying float vT;
-void main(){
-  float behind = mod(uHead - vT, 1.0);          // how far behind the light this point is
-  float pulse = exp(-behind * 11.0);
-  float ends = smoothstep(0.0, 0.07, vT) * smoothstep(1.0, 0.93, vT);
-  float a = (0.12 + pulse * 0.95) * ends;
-  gl_FragColor = vec4(uColor, a);
+/** A skill's icon as a rounded tile: the brand mark drawn from its SVG path. */
+function iconTexture(slug: keyof typeof TECH_MARKS): CanvasTexture {
+  const size = 128;
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = size;
+  const ctx = canvas.getContext("2d")!;
+  const pad = 6;
+  const r = 30;
+  ctx.beginPath();
+  ctx.roundRect(pad, pad, size - pad * 2, size - pad * 2, r);
+  ctx.fillStyle = "rgba(15, 11, 40, 0.94)";
+  ctx.fill();
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = "rgba(196, 181, 255, 0.4)";
+  ctx.stroke();
+  const mark = TECH_MARKS[slug];
+  const scale = 68 / 24;
+  ctx.save();
+  ctx.translate((size - 68) / 2, (size - 68) / 2);
+  ctx.scale(scale, scale);
+  ctx.fillStyle = readableHex(mark.hex);
+  ctx.fill(new Path2D(mark.path));
+  ctx.restore();
+  const texture = new CanvasTexture(canvas);
+  texture.anisotropy = 4;
+  return texture;
 }
-`;
-
-const DOT_VERT = /* glsl */ `
-attribute float aSize; attribute vec3 aColor; varying vec3 vColor;
-uniform float uPx;
-void main(){
-  vColor = aColor;
-  vec4 mv = modelViewMatrix * vec4(position, 1.0);
-  gl_PointSize = aSize * uPx;
-  gl_Position = projectionMatrix * mv;
-}
-`;
-const DOT_FRAG = /* glsl */ `
-varying vec3 vColor;
-void main(){
-  float d = length(gl_PointCoord - 0.5) * 2.0;
-  float a = smoothstep(1.0, 0.0, d);
-  gl_FragColor = vec4(vColor * (0.4 + a), a * a);
-}
-`;
-
-const MOON_VERT = PLANET_VERT;
-const MOON_FRAG = /* glsl */ `
-uniform vec3 uLight; uniform vec3 uColor;
-varying vec3 vObj; varying vec3 vN; varying vec3 vView;
-${NOISE}
-void main(){
-  vec3 N = normalize(vN);
-  float n = fbm3(normalize(vObj) * 5.0);
-  float craters = smoothstep(0.45, 0.65, fbm3(normalize(vObj) * 11.0));
-  vec3 col = uColor * (0.62 + 0.5 * n - 0.18 * craters);
-  float d = smoothstep(-0.08, 0.35, dot(N, normalize(uLight)));
-  vec3 lit = col * (0.05 + 1.15 * d);
-  lit += vec3(0.55, 0.5, 0.95) * pow(1.0 - max(dot(N, normalize(vView)), 0.0), 3.0) * 0.25 * d;
-  gl_FragColor = vec4(lit, 1.0);
-}
-`;
-
-function latLon(lat: number, lon: number, radius: number): Vector3 {
-  const phi = ((90 - lat) * Math.PI) / 180;
-  const theta = ((lon + 180) * Math.PI) / 180;
-  return new Vector3(
-    -radius * Math.sin(phi) * Math.cos(theta),
-    radius * Math.cos(phi),
-    radius * Math.sin(phi) * Math.sin(theta)
-  );
-}
-
-const ARC_COLORS = {
-  lilac: new Color("#b9a6ff"),
-  cyan: new Color("#7fd6ff"),
-  pink: new Color("#ff9ad6"),
-} as const;
 
 interface PlanetSceneProps {
   /** Called once, after the first frame is on screen */
   onReady: () => void;
   /** Called if WebGL fails later (context lost) so the page can fall back */
   onFail: () => void;
-  /** Text of the label that follows the home marker */
-  homeLabel: string;
+  /** A skill icon was clicked */
+  onSelect: (skillSlug: string) => void;
 }
 
-export default function PlanetScene({ onReady, onFail, homeLabel }: PlanetSceneProps) {
+export default function PlanetScene({ onReady, onFail, onSelect }: PlanetSceneProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const labelRef = useRef<HTMLDivElement>(null);
-  const callbacks = useRef({ onReady, onFail });
+  const callbacks = useRef({ onReady, onFail, onSelect });
 
   useEffect(() => {
-    callbacks.current = { onReady, onFail };
-  }, [onReady, onFail]);
+    callbacks.current = { onReady, onFail, onSelect };
+  }, [onReady, onFail, onSelect]);
 
   useEffect(() => {
     const wrap = wrapRef.current!;
     const canvas = canvasRef.current!;
-    const label = labelRef.current!;
 
     let renderer: WebGLRenderer;
     try {
@@ -239,203 +151,99 @@ export default function PlanetScene({ onReady, onFail, homeLabel }: PlanetSceneP
     renderer.setClearColor(0x000000, 0);
 
     const small = window.matchMedia("(max-width: 768px)").matches;
-    // Pixel-ratio ceiling. It starts generous and is lowered automatically if
-    // the machine cannot keep up (see `adapt`), so weak GPUs degrade gracefully.
+    // Pixel-ratio ceiling, lowered automatically if the machine cannot keep up
     let dprCap = small ? 1.25 : 1.6;
 
     const scene = new Scene();
     const camera = new PerspectiveCamera((2 * Math.atan(HALF_VIEW / CAM_Z) * 180) / Math.PI, 1, 0.1, 50);
     camera.position.set(0, 0, CAM_Z);
-
-    // View-space direction toward the sun: upper left, a little in front
     const lightView = new Vector3(-0.78, 0.5, 0.62).normalize();
 
-    // ---- Planet ------------------------------------------------------------
+    // ---- Planet ---------------------------------------------------------------
     const tilt = new Group(); // axial tilt + drag pitch
-    const spin = new Group(); // rotation around the planet's own axis
-    tilt.rotation.set(0.3, 0, 0.36);
+    const spin = new Group(); // rotation around the vertical axis (drag, rest spin)
+    tilt.rotation.set(0.22, 0, 0.18);
     tilt.add(spin);
     scene.add(tilt);
 
-    const cityPositions = PLANET_MARKERS.map((m) => latLon(m.lat, m.lon, 1));
-    while (cityPositions.length < 8) cityPositions.push(new Vector3(0, 0, 0).setScalar(99));
-
-    const segments = small ? 64 : 96;
-    const planetMat = new ShaderMaterial({
-      vertexShader: PLANET_VERT,
-      fragmentShader: PLANET_FRAG,
-      uniforms: {
-        uTime: { value: 0 },
-        uLight: { value: lightView.clone() },
-        uCities: { value: cityPositions },
-        uOcean: { value: new Color("#0d0a33") },
-        uLand: { value: new Color("#2b2279") },
-        uLandHi: { value: new Color("#7561e0") },
-        uAtmo: { value: new Color("#8b6cff") },
-        uLamp: { value: new Color("#ffb86b") },
-      },
-    });
-    const planet = new Mesh(new SphereGeometry(R, segments, segments), planetMat);
+    const planet = new Mesh(
+      new SphereGeometry(R, small ? 48 : 72, small ? 48 : 72),
+      new ShaderMaterial({
+        vertexShader: PLANET_VERT,
+        fragmentShader: PLANET_FRAG,
+        uniforms: {
+          uLight: { value: lightView.clone() },
+          uDeep: { value: new Color("#0c0930") },
+          uMid: { value: new Color("#3a2d95") },
+          uAtmo: { value: new Color("#8b6cff") },
+        },
+      })
+    );
     spin.add(planet);
 
-    // ---- Atmosphere glow: a camera-facing disc behind the planet -------------
-    const glowMat = new ShaderMaterial({
-      vertexShader: GLOW_VERT,
-      fragmentShader: GLOW_FRAG,
-      uniforms: {
-        uColor: { value: new Color("#7d5cff") },
-        uLight2D: { value: new Vector3(lightView.x, lightView.y, 0).normalize() },
-        uHalf: { value: 1.95 },
-      },
-      transparent: true,
-      depthWrite: false,
-      blending: AdditiveBlending,
-    });
-    const glow = new Mesh(new PlaneGeometry(3.9, 3.9), glowMat);
-    glow.position.z = -0.5;
+    const glow = new Mesh(
+      new PlaneGeometry(2 * HALF_VIEW * 0.62, 2 * HALF_VIEW * 0.62),
+      new ShaderMaterial({
+        vertexShader: GLOW_VERT,
+        fragmentShader: GLOW_FRAG,
+        uniforms: {
+          uColor: { value: new Color("#7d5cff") },
+          uLight2D: { value: new Vector2(lightView.x, lightView.y).normalize() },
+          uHalf: { value: HALF_VIEW * 0.62 },
+        },
+        transparent: true,
+        depthWrite: false,
+        blending: AdditiveBlending,
+      })
+    );
+    glow.position.z = -0.6;
     glow.renderOrder = -1;
     scene.add(glow);
 
-    // ---- Markers ---------------------------------------------------------------
-    const markerCount = PLANET_MARKERS.length;
-    const markerPos = new Float32Array(markerCount * 3);
-    const markerSize = new Float32Array(markerCount);
-    const markerColor = new Float32Array(markerCount * 3);
-    const lamp = new Color("#ffd9a8");
-    const lilac = new Color("#cdbfff");
-    PLANET_MARKERS.forEach((m, i) => {
-      const v = latLon(m.lat, m.lon, 1.004);
-      markerPos.set([v.x, v.y, v.z], i * 3);
-      markerSize[i] = (m.size ?? 1) * 11;
-      const c = m.home ? lilac : lamp;
-      markerColor.set([c.r, c.g, c.b], i * 3);
-    });
-    const markerGeo = new BufferGeometry();
-    markerGeo.setAttribute("position", new BufferAttribute(markerPos, 3));
-    markerGeo.setAttribute("aSize", new BufferAttribute(markerSize, 1));
-    markerGeo.setAttribute("aColor", new BufferAttribute(markerColor, 3));
-    const dotUniforms = { uPx: { value: 1 } };
-    const markerMat = new ShaderMaterial({
-      vertexShader: DOT_VERT,
-      fragmentShader: DOT_FRAG,
-      uniforms: dotUniforms,
-      transparent: true,
-      depthWrite: false,
-      blending: AdditiveBlending,
-    });
-    spin.add(new Points(markerGeo, markerMat));
+    // ---- Skills on rings --------------------------------------------------------
+    const skillBySlug = new Map(SKILLS.map((s) => [s.slug, s]));
+    const textures: CanvasTexture[] = [];
+    const sprites: Sprite[] = [];
+    const orbits: { group: Group; speed: number }[] = [];
+    for (const ring of PLANET_RINGS) {
+      const plane = new Group(); // sets the tilt of the ring
+      plane.rotation.set(ring.tilt[0], 0, ring.tilt[1]);
+      const orbit = new Group(); // turns inside it
+      plane.add(orbit);
+      spin.add(plane);
+      orbits.push({ group: orbit, speed: ring.speed });
 
-    // Pulsing rings on the home marker
-    const home = PLANET_MARKERS.find((m) => m.home);
-    const homeNormal = home ? latLon(home.lat, home.lon, 1).normalize() : null;
-    const rings: { mesh: Mesh; mat: MeshBasicMaterial; phase: number }[] = [];
-    if (home && homeNormal) {
-      for (let i = 0; i < 2; i++) {
-        const mat = new MeshBasicMaterial({
-          color: 0xd9ceff,
-          transparent: true,
-          opacity: 0,
-          depthWrite: false,
-          blending: AdditiveBlending,
-          side: DoubleSide,
-        });
-        const mesh = new Mesh(new RingGeometry(0.028, 0.033, 48), mat);
-        mesh.position.copy(homeNormal).multiplyScalar(1.006);
-        // RingGeometry lies in the XY plane facing +z: turn +z onto the surface normal
-        mesh.quaternion.setFromUnitVectors(new Vector3(0, 0, 1), homeNormal);
-        spin.add(mesh);
-        rings.push({ mesh, mat, phase: i / 2 });
+      // Faint guide line
+      const pts: number[] = [];
+      for (let i = 0; i <= 160; i++) {
+        const t = (i / 160) * Math.PI * 2;
+        pts.push(Math.cos(t) * ring.radius, 0, Math.sin(t) * ring.radius);
       }
-    }
-
-    // ---- Arcs: great circles lifted off the surface, with a light running along each
-    const byId = new Map(PLANET_MARKERS.map((m) => [m.id, m]));
-    const SAMPLES = 80;
-    const arcs = PLANET_ARCS.flatMap((arc) => {
-      const a = byId.get(arc.from);
-      const b = byId.get(arc.to);
-      if (!a || !b) return [];
-      const va = latLon(a.lat, a.lon, 1).normalize();
-      const vb = latLon(b.lat, b.lon, 1).normalize();
-      const angle = va.angleTo(vb);
-      const lift = 0.1 + 0.3 * (angle / Math.PI);
-      const pts = new Float32Array((SAMPLES + 1) * 3);
-      const ts = new Float32Array(SAMPLES + 1);
-      const sinA = Math.sin(angle) || 1;
-      for (let i = 0; i <= SAMPLES; i++) {
-        const t = i / SAMPLES;
-        const p = va
-          .clone()
-          .multiplyScalar(Math.sin((1 - t) * angle) / sinA)
-          .add(vb.clone().multiplyScalar(Math.sin(t * angle) / sinA))
-          .normalize()
-          .multiplyScalar(1.004 + lift * Math.sin(Math.PI * t) ** 0.85);
-        pts.set([p.x, p.y, p.z], i * 3);
-        ts[i] = t;
-      }
-      const geo = new BufferGeometry();
-      geo.setAttribute("position", new BufferAttribute(pts, 3));
-      geo.setAttribute("aT", new BufferAttribute(ts, 1));
-      const color = ARC_COLORS[arc.color ?? "lilac"];
-      const mat = new ShaderMaterial({
-        vertexShader: ARC_VERT,
-        fragmentShader: ARC_FRAG,
-        uniforms: { uColor: { value: color }, uHead: { value: 0 } },
-        transparent: true,
-        depthWrite: false,
-        blending: AdditiveBlending,
-      });
-      spin.add(new Line(geo, mat));
-      return [{ arc, pts, mat, color }];
-    });
-
-    // Glowing heads that ride the arcs
-    const headPos = new Float32Array(arcs.length * 3);
-    const headSize = new Float32Array(arcs.length).fill(15);
-    const headColor = new Float32Array(arcs.length * 3);
-    arcs.forEach((a, i) => headColor.set([a.color.r, a.color.g, a.color.b], i * 3));
-    const headGeo = new BufferGeometry();
-    headGeo.setAttribute("position", new BufferAttribute(headPos, 3));
-    headGeo.setAttribute("aSize", new BufferAttribute(headSize, 1));
-    headGeo.setAttribute("aColor", new BufferAttribute(headColor, 3));
-    spin.add(new Points(headGeo, markerMat));
-
-    // ---- Moons -----------------------------------------------------------------
-    const moons = PLANET_MOONS.map((m) => {
-      const orbit = new Group();
-      orbit.rotation.set(m.tilt, 0, 0.18);
-      const mesh = new Mesh(
-        new SphereGeometry(m.radius, 40, 40),
-        new ShaderMaterial({
-          vertexShader: MOON_VERT,
-          fragmentShader: MOON_FRAG,
-          uniforms: { uLight: { value: lightView.clone() }, uColor: { value: new Color(m.color) } },
-        })
+      const lineGeo = new BufferGeometry();
+      lineGeo.setAttribute("position", new BufferAttribute(new Float32Array(pts), 3));
+      plane.add(
+        new Line(
+          lineGeo,
+          new LineBasicMaterial({ color: 0xb9a6ff, transparent: true, opacity: 0.13, blending: AdditiveBlending, depthWrite: false })
+        )
       );
-      orbit.add(mesh);
-      // Faint orbit line
-      const ringPts: number[] = [];
-      for (let i = 0; i <= 128; i++) {
-        const t = (i / 128) * Math.PI * 2;
-        ringPts.push(Math.cos(t) * m.distance, 0, Math.sin(t) * m.distance);
-      }
-      const ringGeo = new BufferGeometry();
-      ringGeo.setAttribute("position", new BufferAttribute(new Float32Array(ringPts), 3));
-      const ringT = new Float32Array(129);
-      for (let i = 0; i <= 128; i++) ringT[i] = i / 128;
-      ringGeo.setAttribute("aT", new BufferAttribute(ringT, 1));
-      const ringMat = new ShaderMaterial({
-        vertexShader: ARC_VERT,
-        fragmentShader: /* glsl */ `varying float vT; void main(){ gl_FragColor = vec4(0.72, 0.65, 1.0, 0.1); }`,
-        transparent: true,
-        depthWrite: false,
-        blending: AdditiveBlending,
+
+      const usable = ring.skills
+        .map((slug) => skillBySlug.get(slug))
+        .filter((s): s is NonNullable<typeof s> => !!s && "brand" in s.mark);
+      usable.forEach((skill, i) => {
+        if (!("brand" in skill.mark)) return;
+        const texture = iconTexture(skill.mark.brand);
+        textures.push(texture);
+        const sprite = new Sprite(new SpriteMaterial({ map: texture, transparent: true, depthWrite: false }));
+        const angle = (i / usable.length) * Math.PI * 2;
+        sprite.position.set(Math.cos(angle) * ring.radius, 0, Math.sin(angle) * ring.radius);
+        sprite.scale.setScalar(ring.size);
+        sprite.userData = { skill: skill.slug, name: skill.name };
+        orbit.add(sprite);
+        sprites.push(sprite);
       });
-      const orbitLine = new Line(ringGeo, ringMat);
-      orbit.add(orbitLine);
-      scene.add(orbit);
-      return { m, mesh, orbit, angle: m.phase ?? 0 };
-    });
+    }
 
     // ---- Sizing -----------------------------------------------------------------
     let size = 0;
@@ -447,21 +255,33 @@ export default function PlanetScene({ onReady, onFail, homeLabel }: PlanetSceneP
       dpr = Math.min(window.devicePixelRatio || 1, dprCap);
       renderer.setPixelRatio(dpr);
       renderer.setSize(size, size, false);
-      dotUniforms.uPx.value = dpr;
       needsRender = true;
       schedule();
     }
 
     // ---- Interaction ------------------------------------------------------------
+    const raycaster = new Raycaster();
+    const ndc = new Vector2();
+    let hovered: Sprite | null = null;
     let dragging = false;
+    let moved = 0;
     let lastX = 0;
     let lastY = 0;
-    let spinVel = 0.07; // rad/s, eased back to the resting speed after a drag
-    const REST_SPIN = 0.07;
+    const REST_SPIN = 0.05;
+    let spinVel = REST_SPIN;
     const pointer = { x: 0, y: 0 };
     const eased = { x: 0, y: 0 };
 
-    /** Is the pointer on the sphere (not just inside the square canvas)? */
+    function pick(e: PointerEvent): Sprite | null {
+      const r = canvas.getBoundingClientRect();
+      ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+      raycaster.setFromCamera(ndc, camera);
+      // Nearest icon wins; icons hidden behind the sphere are skipped
+      const hits = raycaster.intersectObjects(sprites, false);
+      const sphere = raycaster.intersectObject(planet, false)[0];
+      const hit = hits.find((h) => !sphere || h.distance < sphere.distance);
+      return (hit?.object as Sprite) ?? null;
+    }
     function onSphere(e: PointerEvent) {
       const r = canvas.getBoundingClientRect();
       const dx = e.clientX - (r.left + r.width / 2);
@@ -469,33 +289,45 @@ export default function PlanetScene({ onReady, onFail, homeLabel }: PlanetSceneP
       return Math.hypot(dx, dy) < (r.width / 2) * SPHERE_FRACTION * 1.03;
     }
     function onPointerMove(e: PointerEvent) {
-      if (!dragging) {
-        // The cursor reads this attribute: "Spin" only while over the sphere
-        canvas.dataset.cursor = onSphere(e) ? "Spin" : "";
+      if (dragging) {
+        const dx = e.clientX - lastX;
+        const dy = e.clientY - lastY;
+        lastX = e.clientX;
+        lastY = e.clientY;
+        moved += Math.abs(dx) + Math.abs(dy);
+        spin.rotation.y += dx * 0.0072;
+        tilt.rotation.x = Math.max(-0.5, Math.min(0.9, tilt.rotation.x + dy * 0.0035));
+        spinVel = dx * 0.0072 * 60;
+        needsRender = true;
+        schedule();
         return;
       }
-      const dx = e.clientX - lastX;
-      const dy = e.clientY - lastY;
-      lastX = e.clientX;
-      lastY = e.clientY;
-      spin.rotation.y += dx * 0.0072;
-      tilt.rotation.x = Math.max(-0.55, Math.min(1.0, tilt.rotation.x + dy * 0.0035));
-      spinVel = dx * 0.0072 * 60;
-      needsRender = true;
-      schedule();
+      const sprite = pick(e);
+      if (sprite !== hovered) {
+        hovered = sprite;
+        needsRender = true;
+        schedule();
+      }
+      // The custom cursor reads this: the icon's name, "Spin" on the sphere, nothing elsewhere
+      canvas.dataset.cursor = sprite ? String(sprite.userData.name) : onSphere(e) ? "Spin" : "";
+      canvas.style.cursor = "";
     }
     function onPointerDown(e: PointerEvent) {
-      if (!onSphere(e)) return;
+      if (!pick(e) && !onSphere(e)) return;
       dragging = true;
+      moved = 0;
       lastX = e.clientX;
       lastY = e.clientY;
       canvas.setPointerCapture(e.pointerId);
-      canvas.style.cursor = "grabbing";
       schedule();
     }
-    function onPointerUp() {
+    function onPointerUp(e: PointerEvent) {
+      if (dragging && moved < 5) {
+        // A click, not a drag
+        const sprite = pick(e);
+        if (sprite) callbacks.current.onSelect(String(sprite.userData.skill));
+      }
       dragging = false;
-      canvas.style.cursor = "";
       schedule();
     }
     function onWindowPointer(e: PointerEvent) {
@@ -509,63 +341,28 @@ export default function PlanetScene({ onReady, onFail, homeLabel }: PlanetSceneP
     let visible = true;
     let needsRender = true;
     let last = performance.now();
-    let time = 0;
     let readyCalled = false;
-    const tmp = new Vector3();
-    const worldPos = new Vector3();
-    const worldNormal = new Vector3();
-
-    function placeHeads() {
-      arcs.forEach((a, i) => {
-        const head = (((time * (a.arc.speed ?? 0.1) + (a.arc.offset ?? 0)) % 1) + 1) % 1;
-        a.mat.uniforms.uHead.value = head;
-        const f = head * SAMPLES;
-        const i0 = Math.min(SAMPLES - 1, Math.floor(f));
-        const k = f - i0;
-        for (let c = 0; c < 3; c++) {
-          headPos[i * 3 + c] = a.pts[i0 * 3 + c] * (1 - k) + a.pts[(i0 + 1) * 3 + c] * k;
-        }
-      });
-      headGeo.attributes.position.needsUpdate = true;
-    }
-
-    function placeLabel() {
-      if (!homeNormal) return;
-      worldNormal.copy(homeNormal).applyMatrix4(spin.matrixWorld).sub(tmp.setFromMatrixPosition(spin.matrixWorld)).normalize();
-      worldPos.copy(homeNormal).multiplyScalar(1.0).applyMatrix4(spin.matrixWorld);
-      const facing = worldNormal.z; // camera looks down −z, so >0 faces us
-      worldPos.project(camera);
-      const x = (worldPos.x * 0.5 + 0.5) * size;
-      const y = (-worldPos.y * 0.5 + 0.5) * size;
-      label.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`;
-      label.style.opacity = String(Math.max(0, Math.min(1, (facing - 0.2) * 3)));
-    }
 
     function draw(dt: number, animate: boolean) {
       if (animate) {
-        time += dt;
-        planetMat.uniforms.uTime.value = time;
         if (!dragging) {
           spin.rotation.y += spinVel * dt;
           spinVel += (REST_SPIN - spinVel) * Math.min(1, dt * 1.4);
         }
         eased.x += (pointer.x - eased.x) * Math.min(1, dt * 2);
         eased.y += (pointer.y - eased.y) * Math.min(1, dt * 2);
-        tilt.rotation.y = eased.x * 0.16;
-        moons.forEach((mo) => {
-          mo.angle += mo.m.speed * dt;
-          mo.mesh.position.set(Math.cos(mo.angle) * mo.m.distance, 0, Math.sin(mo.angle) * mo.m.distance);
-          mo.mesh.rotation.y += dt * 0.2;
-        });
-        rings.forEach((r) => {
-          const t = (time * 0.45 + r.phase) % 1;
-          r.mesh.scale.setScalar(1 + t * 4.5);
-          r.mat.opacity = (1 - t) * (1 - t) * 0.9;
-        });
+        tilt.rotation.y = eased.x * 0.14;
+        for (const o of orbits) o.group.rotation.y += o.speed * dt;
       }
-      placeHeads();
-      tilt.updateMatrixWorld(true);
-      placeLabel();
+      // Hovered icon grows a little
+      for (const s of sprites) {
+        const base = s === hovered ? 1.22 : 1;
+        const cur = s.userData.k ?? 1;
+        const next = cur + (base - cur) * (animate ? 0.18 : 1);
+        s.userData.k = next;
+        const ring = PLANET_RINGS.find((r) => r.skills.includes(s.userData.skill));
+        s.scale.setScalar((ring?.size ?? 0.45) * next);
+      }
       renderer.render(scene, camera);
       if (!readyCalled) {
         readyCalled = true;
@@ -573,17 +370,17 @@ export default function PlanetScene({ onReady, onFail, homeLabel }: PlanetSceneP
       }
     }
 
-    // Adaptive quality: sustained slow frames first cost resolution, then, as a
-    // last resort, the animation itself (the planet stays, drawn on demand).
+    // Adaptive quality: sustained slow frames first cost resolution, then the
+    // animation itself (the planet stays, drawn on demand).
     let frozen = false;
     let slow = 0;
-    let warmup = 24; // shader compile + first uploads are slow: do not count them
+    let warmup = 24;
     function adapt(rawDt: number) {
       if (warmup > 0) {
         warmup -= 1;
         return;
       }
-      if (rawDt > 0.5) return; // tab was in the background
+      if (rawDt > 0.5) return;
       slow = rawDt > 0.034 ? slow + 1 : Math.max(0, slow - 1);
       if (slow < 40) return;
       slow = 0;
@@ -604,8 +401,6 @@ export default function PlanetScene({ onReady, onFail, homeLabel }: PlanetSceneP
       const animate = ambientMotionOn() && !frozen;
       if (animate && visible && !document.hidden) adapt(rawDt);
       if (visible && !document.hidden && (animate || dragging || needsRender)) {
-        // Frozen scene (paused / reduced motion): only re-draw when asked. A drag
-        // still moves the planet (it rotates it directly) — that is the visitor's own motion.
         draw(dt, animate);
         needsRender = false;
       }
@@ -669,19 +464,18 @@ export default function PlanetScene({ onReady, onFail, homeLabel }: PlanetSceneP
         if (Array.isArray(mat)) mat.forEach((x) => x.dispose());
         else mat?.dispose?.();
       });
+      textures.forEach((t) => t.dispose());
       renderer.dispose();
     };
   }, []);
 
   return (
     <div ref={wrapRef} className="absolute inset-0">
-      <canvas ref={canvasRef} className="pointer-events-auto absolute inset-0 h-full w-full touch-pan-y" />
-      {/* Follows the home marker; hidden when it turns to the far side */}
-      <div ref={labelRef} className="pointer-events-none absolute left-0 top-0 opacity-0" aria-hidden="true">
-        <span className="font-hand ml-3 -mt-9 inline-flex whitespace-nowrap rounded-full border border-line-strong bg-night/70 px-3 py-1 text-[15px] text-ink backdrop-blur-md">
-          {homeLabel}
-        </span>
-      </div>
+      <canvas
+        ref={canvasRef}
+        data-cursor-style="scope"
+        className="pointer-events-auto absolute inset-0 h-full w-full touch-pan-y"
+      />
     </div>
   );
 }

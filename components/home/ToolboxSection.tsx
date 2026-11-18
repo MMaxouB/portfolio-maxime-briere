@@ -180,7 +180,10 @@ export function ToolboxSection({ projects }: { projects: Project[] }) {
             </div>
             <p className="mt-4 text-[13px] text-ink-3" aria-live="polite">
               Showing {visible.length} of {SKILLS.length}
-              {filter === "top" ? " — the strongest in each area first." : "."}
+              {filter === "top" ? " — the strongest in each area first." : "."}{" "}
+              <Link href="/expertise" className="text-lilac underline-offset-4 hover:text-ink hover:underline">
+                See every skill in detail
+              </Link>
             </p>
 
             <motion.ul layout className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">

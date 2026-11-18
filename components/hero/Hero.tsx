@@ -73,21 +73,20 @@ export function Hero() {
           className="absolute -right-[10%] top-[-10%] h-[70%] w-[70%]"
           style={{ background: "radial-gradient(closest-side, rgba(124,92,255,0.22), transparent)" }}
         />
-        {/* Anchored to the page container, not the viewport, so on a huge screen the
-            planet stays next to the content instead of hugging the far edge.
-            --s is the canvas side. The sphere is 65% of it, centred, so its top
-            sits 0.175·s below the canvas top: place that point ~19svh above the
-            bottom of the hero and let the rest sink into the next section. */}
+        {/* Anchored to the page container, not the viewport. --s is the canvas
+            side; the sphere is ~38% of it, centred, so its top sits 0.31·s below
+            the canvas top. Place that point ~16svh above the bottom of the hero:
+            the rings of skills turn around it and the base sinks into About. */}
         <div className="relative mx-auto h-full max-w-site">
           <Planet3D
-            className="absolute [mask-image:linear-gradient(to_bottom,#000_58%,transparent_94%)]"
+            className="absolute [mask-image:linear-gradient(to_bottom,#000_62%,transparent_96%)]"
             style={
               {
-                "--s": "clamp(400px, 66vw, 900px)",
+                "--s": "clamp(360px, 52vw, 760px)",
                 width: "var(--s)",
                 height: "var(--s)",
-                right: "calc(var(--s) * -0.2)",
-                top: "calc(100% - 19svh - var(--s) * 0.175)",
+                right: "calc(var(--s) * -0.08)",
+                top: "calc(100% - 7svh - var(--s) * 0.31)",
               } as React.CSSProperties
             }
           />

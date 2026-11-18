@@ -11,6 +11,7 @@ import { LogoMark } from "./LogoMark";
 import { MobileMenu } from "./MobileMenu";
 import { PaletteButton } from "./PaletteButton";
 import { MotionToggle } from "./MotionToggle";
+import { PagesMenu } from "./PagesMenu";
 
 /**
  * Top bar. On the home page the links are in-page anchors with a scroll-spy;
@@ -93,6 +94,9 @@ export function Navbar() {
                 </li>
               );
             })}
+            <li>
+              <PagesMenu />
+            </li>
           </ul>
         </nav>
 

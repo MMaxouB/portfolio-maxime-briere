@@ -16,6 +16,7 @@ import {
   Sparkles,
   TestTubes,
 } from "lucide-react";
+import { DEEP_PAGES } from "@/lib/navigation";
 import { ABOUT_FACTS, ABOUT_FOCUS, ABOUT_INTRO, ABOUT_QUOTE } from "@/lib/about";
 import { getFeaturedProjects, getProjects } from "@/lib/projects";
 import { SectionHeader, Em } from "@/components/ui/SectionHeader";
@@ -122,12 +123,15 @@ export function AboutSection() {
                   );
                 })}
               </ul>
-              <Link
-                href="/timeline"
-                className="mt-5 inline-flex items-center gap-1.5 text-sm text-lilac transition-colors hover:text-ink"
-              >
-                How I got here — the timeline <ArrowUpRight size={15} aria-hidden="true" />
-              </Link>
+              <ul className="mt-5 flex flex-wrap gap-2">
+                {DEEP_PAGES.filter((p) => ["/about", "/timeline", "/cyber"].includes(p.href)).map((page) => (
+                  <li key={page.href}>
+                    <Link href={page.href} className="pill px-3.5 py-1.5 text-[13px]">
+                      {page.label} <ArrowUpRight size={13} aria-hidden="true" />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             </div>
           </Reveal>
         </div>

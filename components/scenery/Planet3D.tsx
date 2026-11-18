@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import { Planet } from "./Planet";
-import { SITE } from "@/lib/site";
 
 // three.js is loaded only when this component mounts on the client, and only
 // if WebGL looks usable — it never touches the critical path of the page.
@@ -24,11 +24,12 @@ interface Planet3DProps {
 }
 
 /**
- * The 3D planet with a graceful floor: the SVG planet is what the server sends
- * and what stays if WebGL is missing, blocked, or lost. When the 3D scene has
- * drawn its first frame, the SVG fades out underneath it.
+ * The skills planet, with a graceful floor: the SVG planet is what the server
+ * sends and what stays if WebGL is missing, blocked, or lost. When the 3D scene
+ * has drawn its first frame, the SVG fades out underneath it.
  */
 export function Planet3D({ className = "", style }: Planet3DProps) {
+  const router = useRouter();
   const [wanted, setWanted] = useState(false);
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -50,14 +51,17 @@ export function Planet3D({ className = "", style }: Planet3DProps) {
 
   return (
     <div className={className} style={style}>
-      {/* Sized to match the 3D sphere (65% of the box) so the swap does not jump */}
+      {/* Sized to match the 3D sphere (38% of the box) so the swap does not jump */}
       <Planet
-        arcs
-        className={`absolute inset-0 h-full w-full scale-[0.8125] transition-opacity duration-[1400ms] ease-out ${ready && show3D ? "opacity-0" : "opacity-90"}`}
+        className={`absolute inset-0 h-full w-full scale-[0.475] transition-opacity duration-[1400ms] ease-out ${ready && show3D ? "opacity-0" : "opacity-90"}`}
       />
       {show3D && (
         <div className={`absolute inset-0 transition-opacity duration-[1400ms] ease-out ${ready ? "opacity-100" : "opacity-0"}`}>
-          <PlanetScene onReady={() => setReady(true)} onFail={() => setFailed(true)} homeLabel={SITE.location} />
+          <PlanetScene
+            onReady={() => setReady(true)}
+            onFail={() => setFailed(true)}
+            onSelect={(slug) => router.push(`/expertise#${slug}`)}
+          />
         </div>
       )}
     </div>

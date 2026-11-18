@@ -5,16 +5,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import { ArrowRight, Menu, Search, SquareTerminal, X } from "lucide-react";
-import { HOME_SECTIONS, SOCIAL_NAV } from "@/lib/navigation";
+import { DEEP_PAGES, HOME_SECTIONS, SOCIAL_NAV } from "@/lib/navigation";
+import { PageIcon } from "./PageIcon";
 import { useDialog } from "@/lib/useDialog";
 import { useApp } from "@/providers/AppProviders";
 import { MotionToggle } from "./MotionToggle";
 
-const MORE = [
-  { label: "All projects", href: "/projects" },
-  { label: "Timeline", href: "/timeline" },
-  { label: "Cyber lab", href: "/cyber" },
-];
 
 export function MobileMenu() {
   const [isOpen, setIsOpen] = useState(false);
@@ -62,7 +58,7 @@ export function MobileMenu() {
               animate={reduce ? { opacity: 1 } : { x: 0 }}
               exit={reduce ? { opacity: 0 } : { x: "100%" }}
               transition={{ type: "spring", bounce: 0, duration: 0.45 }}
-              className="fixed inset-y-0 right-0 z-50 flex w-full max-w-sm flex-col border-l border-line bg-deep/95 p-6 backdrop-blur-xl"
+              className="fixed inset-y-0 right-0 z-50 flex w-full max-w-sm flex-col overflow-y-auto border-l border-line bg-deep/95 p-6 backdrop-blur-xl"
             >
               <div className="mb-8 flex items-center justify-between">
                 <span className="font-mono text-sm text-lilac">~/menu</span>
@@ -94,13 +90,22 @@ export function MobileMenu() {
                     </Link>
                   </motion.div>
                 ))}
-                <div className="mt-6 flex flex-wrap gap-2">
-                  {MORE.map((item) => (
-                    <Link key={item.href} href={item.href} onClick={close} className="pill px-3.5 py-1.5 text-sm">
-                      {item.label}
-                    </Link>
+                <p className="mt-7 font-mono text-xs text-ink-3">~/pages</p>
+                <ul className="mt-2 flex flex-col">
+                  {DEEP_PAGES.map((page) => (
+                    <li key={page.href}>
+                      <Link href={page.href} onClick={close} className="flex items-center gap-3.5 rounded-2xl px-1 py-2.5 transition-colors hover:bg-violet/10">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-line-strong text-lilac">
+                          <PageIcon name={page.icon} />
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block text-[15px] font-semibold text-ink">{page.label}</span>
+                          <span className="block text-[12.5px] leading-snug text-ink-3">{page.blurb}</span>
+                        </span>
+                      </Link>
+                    </li>
                   ))}
-                </div>
+                </ul>
               </nav>
 
               <div className="mt-auto flex flex-col gap-4 pt-8">

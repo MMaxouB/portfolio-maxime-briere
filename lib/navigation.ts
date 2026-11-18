@@ -50,3 +50,23 @@ export function isExternalHref(href: string): boolean {
 export function getSocialHref(label: string): string | undefined {
   return SOCIAL_NAV.find((item) => item.label === label)?.href;
 }
+
+/**
+ * The pages that go deeper than the home page, each with one plain sentence on
+ * what you find there. Read by the top-bar menu, the mobile menu and the
+ * in-section links, so a page is described once.
+ */
+export interface DeepPage {
+  label: string;
+  href: string;
+  blurb: string;
+  icon: "projects" | "skills" | "timeline" | "cyber" | "about";
+}
+
+export const DEEP_PAGES: DeepPage[] = [
+  { label: "All projects", href: "/projects", blurb: "11 projects with filters, public and private", icon: "projects" },
+  { label: "Skills in detail", href: "/expertise", blurb: "Every skill, its level, and the projects behind it", icon: "skills" },
+  { label: "Timeline", href: "/timeline", blurb: "From first Python scripts to today, in order", icon: "timeline" },
+  { label: "Cyber lab", href: "/cyber", blurb: "HackTheBox, method sheets, security practice", icon: "cyber" },
+  { label: "About, longer", href: "/about", blurb: "How I work and what I am learning", icon: "about" },
+];

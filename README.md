@@ -35,36 +35,43 @@ npm run check      # everything CI should run
 
 | Section | The idea |
 |---|---|
-| Hero | A real two-column grid (nothing absolutely positioned, so nothing clips). `$ whoami` types itself and the name decodes as its output. On the right, a live **Lorenz attractor** whose scale is fitted to its measured bounds at any screen size (σ=10, ρ=28, β=8/3, RK4). Click it to drop a "butterfly": a copy of a trail moved by 0.00001. The simulation fast-forwards and the readout shows the gap growing until the two trails take different paths — deterministic is not predictable. Under it rises a **3D planet** (see below) that sinks into the next section with no seam. |
+| Hero | A real two-column grid (nothing absolutely positioned, so nothing clips). `$ whoami` types itself and the name decodes as its output. On the right, a live **Lorenz attractor** whose scale is fitted to its measured bounds at any screen size (σ=10, ρ=28, β=8/3, RK4). Click it to drop a "butterfly": a copy of a trail moved by 0.00001. The simulation fast-forwards and the readout shows the gap growing until the two trails take different paths — deterministic is not predictable. Under it turns a small **3D planet** ringed by your skills (see below) that sinks into the next section with no seam. |
 | About | Who, facts, "what I work on", and four measured numbers (count up on first view). |
 | Projects | Filterable grid. Each card draws a **live SVG sketch** of its project instead of a screenshot (timeline + playhead, radar, three agents racing, notes → Markdown…). Sketches run on hover, always on touch, and **morph** into the case study through React `ViewTransition`. |
 | Toolbox | A real CSS-3D orbit of tools around a sphere; skill cards with self-rated levels that open onto the projects proving them. |
 | Contact | Copy-to-clipboard email and a form that composes a `mailto:` — nothing is sent or stored by the site. |
 | Footer | A seeded procedural skyline with windows switching on and off, reflected in water. |
 
-### The 3D planet
+### The skills planet
 
-`components/scenery/PlanetScene.tsx` — three.js, no textures: continents, clouds,
-ocean glint, a soft terminator, city lights on the night side and an atmosphere
-are all computed in shaders. On top: arcs with light travelling along them,
-pulsing markers, a moon. Drag it to spin (with inertia); the cursor says "Spin".
+`components/scenery/PlanetScene.tsx` — three.js, intentionally simple: a dark
+violet sphere with a lit rim and a halo, and your skills as icons turning around
+it on three tilted rings (they pass in front of and behind the sphere). Drag to
+spin; hover an icon to read the skill's name, click to open it on `/expertise`.
 
-- **Data-driven.** Markers, arcs and moons are lists in `lib/planet.ts`. To add
-  something to the world, add a row — the scene builds it.
+- **Data-driven.** The rings are a list in `lib/planet.ts`: put a skill slug (from
+  `lib/skills.ts`, with a brand mark) in a ring, or add a ring.
 - **Lazy and optional.** `three` (~137 KB gzip) is a separate chunk, requested
   only once the page is idle and only if WebGL works. Without WebGL, with
   `saveData`, or if the context is lost, the SVG planet stays. Under reduced
   motion or when paused, it draws once and stays still.
 - **Adaptive.** If frames stay slow it lowers its resolution, then freezes.
 - Added dependency: `three` — the original brief (§16, §49) names it for a few
-  precise visuals, lazy-loaded, with fallbacks. Nothing else was added.
+  precise visuals, lazy-loaded, with fallbacks.
+
+### Getting to the detailed pages
+
+A "Pages" menu in the top bar (and a described list in the mobile menu) opens
+All projects, Skills in detail, Timeline, Cyber lab and About-longer, each with a
+line on what is inside. The same list (`DEEP_PAGES` in `lib/navigation.ts`) feeds
+the in-section links, so a page is described once.
 
 ### Cursor
 
 A dot that tracks exactly and a spring ring that becomes what a click will do:
-**orbit** (glass disc, the caption running around its edge, an arrow core — for
+**orbit** (a small glass disc, the caption running around its edge, an arrow core — for
 `data-cursor="Read the case study"`), **scope** (viewfinder brackets, the exact
-dot kept, a tag below — for short labels: "Drop ε", "Copy", "Spin"), plain ring
+dot kept, a tag below — for short labels and skill names: "Drop ε", "Copy", "Spin", "Python"), plain ring
 for links, nothing over text fields. Mouse only. Calm by construction: the mode
 is resolved on every move and on scroll, and leaving a labelled element is held
 for 140 ms, so crossing the gap between two cards does not flicker.
@@ -94,7 +101,7 @@ Everything editable lives in `lib/`, typed:
 | `lib/timeline.ts` | Milestones, oldest first |
 | `lib/about.ts` | About copy, facts, focus list, quote |
 | `lib/cyber.ts` | Lab page: method, areas, platforms |
-| `lib/planet.ts` | What lives on the 3D planet: markers, arcs, moons |
+| `lib/planet.ts` | Which skills orbit the 3D planet, on which ring |
 
 Adding a project = one entry in `lib/projects.ts` (pick an existing `visual`, or
 add a sketch in `components/projects/visuals/MiniVisual.tsx`). Tests check that
